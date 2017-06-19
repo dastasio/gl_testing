@@ -28,7 +28,6 @@ elseif (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 	find_package (GLEW REQUIRED)
 	find_package (SDL2 REQUIRED)
 	find_package (SDL2_image REQUIRED)
-
 	message ("detected Linux system")
 else()
 	set (SYSMAC 1)
@@ -38,7 +37,6 @@ else()
 	# GLEW variables are null
 	find_package (SDL2 REQUIRED)
 	find_package (SDL2_image REQUIRED)
-
 	message ("detected macOS")
 endif()
 
