@@ -1,5 +1,6 @@
 #include "window.hpp"
 #include <iostream>
+#include "oglin.hpp"
 
 /* Func: InitSDL
  * --------------------------------------
@@ -38,10 +39,10 @@ void Window::SetContextAttribs(int v_major, int v_minor) {
  * --------------------------------------
  * takes previously defined info (through functions) and creates window and context
  */
-Window::Window(const char* t, int maj, int min, int x, int y, int w, int h) {
+Window::Window(const char* t, int x, int y, int w, int h, int maj, int min) {
+    SetContextAttribs(maj, min);
     if (!Window::InitSDL())
         exit(EXIT_FAILURE);
-    SetContextAttribs(maj, min);
     
     this->window = SDL_CreateWindow(t, x, y, w, h, SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN);
     if (window == nullptr) {
@@ -53,6 +54,11 @@ Window::Window(const char* t, int maj, int min, int x, int y, int w, int h) {
     if (context == NULL) {
         std::cerr << "[ERROR] Could not create OpenGL Context:\n" << SDL_GetError() << std::endl;
         exit(EXIT_FAILURE);
+    }
+    else {
+        SDL_GL_MakeCurrent(this->window, this->context);
+        
+        glViewport(0, 0, w, h);
     }
 }
 
