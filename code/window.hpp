@@ -17,6 +17,8 @@ public:
     SDL_Window* getWindow() {
         return this->window;
     }
+    
+    void printStats();
 private:
     Window(const char* t, int x, int y, int w, int h, int maj, int min);
     ~Window();

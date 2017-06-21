@@ -1,17 +1,21 @@
 #include "system.hpp"
 #include "window.hpp"
 #include "oglin.hpp"
-
+#include <iostream>
 void tsys::Init() {
     /* creating window */
-    //Window &win = Window::instance("test1");
+    Window &win = Window::instance("test1");
+    p = new Program("shader.vert", "shader.frag");
     
+    win.printStats();
 }
 
 
 void tsys::Loop() {
     Window& win = Window::instance("test1");
     SDL_Window* window = win.getWindow();
+    p->compile();
+    p->use();
     
     glClearColor(0.0, 0.3, 0.5, 1.0);
     

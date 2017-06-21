@@ -40,9 +40,9 @@ void Window::SetContextAttribs(int v_major, int v_minor) {
  * takes previously defined info (through functions) and creates window and context
  */
 Window::Window(const char* t, int x, int y, int w, int h, int maj, int min) {
-    SetContextAttribs(maj, min);
     if (!Window::InitSDL())
         exit(EXIT_FAILURE);
+    SetContextAttribs(maj, min);
     
     this->window = SDL_CreateWindow(t, x, y, w, h, SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN);
     if (window == nullptr) {
@@ -60,6 +60,13 @@ Window::Window(const char* t, int x, int y, int w, int h, int maj, int min) {
         
         glViewport(0, 0, w, h);
     }
+}
+
+
+
+void Window::printStats() {
+    std::cout << "OpenGL version :" << glGetString(GL_VERSION) << std::endl;
+    std::cout << "GLSL version   :" << glGetString(GL_SHADING_LANGUAGE_VERSION) << std::endl;
 }
 
 
