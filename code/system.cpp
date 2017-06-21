@@ -6,7 +6,7 @@
 
 void tsys::Init() {
     /* creating window */
-    Window &win = Window::instance("test1");
+    Window &win = Window::instance("test1", 4, 1, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 500, 500);
     p = new Program("shader.vert", "shader.frag");
     
     win.printStats();
@@ -27,7 +27,7 @@ void tsys::Loop() {
         glClear(GL_COLOR_BUFFER_BIT);
         
         glBindBuffer(GL_ARRAY_BUFFER, vbo);
-        glDrawArrays(GL_TRIANGLES, 0, 3);
+        glDrawArrays(GL_TRIANGLES, 0, 6);
         
         SDL_GL_SwapWindow(window);
         
@@ -53,9 +53,8 @@ bool tsys::input() {
 
 void tsys::InitBuffers() {
     GLfloat verts[] = {
-        -0.75, -0.75,
-         0.75, -0.75,
-         0.00,  0.75
+        -1.0,  1.0,   -1.0, -1.0,   1.0, -1.0,
+         1.0, -1.0,    1.0,  1.0,  -1.0,  1.0
     };
     
     glGenVertexArrays(1, &vao);

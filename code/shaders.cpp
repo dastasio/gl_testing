@@ -80,7 +80,7 @@ GLuint Shader::compile(GLenum type) {
         glGetShaderiv(sh, GL_INFO_LOG_LENGTH, &log_size);
         char* log = new char[log_size];
         glGetShaderInfoLog(sh, log_size, nullptr, log);
-        std::cerr << "[ERROR] Could not compile shader" << this->path << ":\n" << log << std::endl;
+        std::cerr << "[ERROR] Could not compile " << this->path << ":\n" << log << std::endl;
         exit(EXIT_FAILURE);
     }
     
