@@ -13,6 +13,8 @@ public:
     
     void Right(float dist);
     void Forward(float dist);
+    void Pitch(float angle);
+    void Yaw(float angle);
 private:
     void SetMatrix();
     

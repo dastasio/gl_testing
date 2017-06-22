@@ -23,7 +23,7 @@ void tsys::Loop() {
     p->use();
     GLint uniformCamLoc = glGetUniformLocation(p->getProgram(), "camera");
     
-    
+    SDL_SetRelativeMouseMode(SDL_TRUE);
     
     glClearColor(0.0, 0.3, 0.5, 1.0);
     
@@ -47,7 +47,7 @@ bool tsys::input() {
             return false;
     }
     
-    const Uint8 *state = SDL_GetKeyboardState(NULL);
+    static const Uint8 *state = SDL_GetKeyboardState(NULL);
     
     if (state[SDL_SCANCODE_ESCAPE]) {
         return false;
@@ -64,6 +64,12 @@ bool tsys::input() {
     if (state[SDL_SCANCODE_S]) {
         cam.Forward(-0.2);
     }
+    
+    int x, y;
+    SDL_GetRelativeMouseState(&x, &y);
+    double speed = -2 * M_PI / WIDTH;
+    cam.Pitch(y * speed);
+    cam.Yaw(x * speed);
     
     return true;
 }

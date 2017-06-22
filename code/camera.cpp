@@ -1,5 +1,6 @@
 #include "camera.hpp"
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtx/rotate_vector.hpp>
 
 using namespace glm;
 /* Constructor: Camera
@@ -27,11 +28,26 @@ void Camera::SetMatrix() {
 }
 
 void Camera::Right(float dist) {
-    this->pos += dist * V;
+    this->pos += dist * vec3(V.x, 0.0, V.z);
     this->SetMatrix();
 }
 
 void Camera::Forward(float dist) {
-    this->pos += dist * N;
+    this->pos += dist * vec3(N.x, 0.0, N.z);
     this->SetMatrix();
+}
+
+
+void Camera::Pitch(float angle) {
+    this->N = normalize(rotate(N, angle, this->V));
+    
+    SetMatrix();
+}
+
+
+void Camera::Yaw(float angle) {
+    this->N = normalize(rotate(this->N, angle, vec3(0.0, 1.0, 0.0)));
+    this->V = normalize(cross(N, U));
+    
+    SetMatrix();
 }
