@@ -18,13 +18,13 @@ void Shader::ReadSource(const char *path) {
     
     file.seekg(0, std::ios::end);
     uint l = file.tellg();
-    char* source = new char[l + 1];
+    char* source = new char[l];
     
     file.seekg(0, std::ios::beg);
-    file.read(source, l + 1);
+    file.read(source, l);
     
     this->src = source;
-    this->length = l + 1;
+    this->length = l;
 }
 
 

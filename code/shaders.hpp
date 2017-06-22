@@ -28,6 +28,8 @@ public:
     
     void compile();
     void use();
+    
+    GLuint getProgram() { return program; }
 private:
     Shader vertex, fragment;
     GLuint program;

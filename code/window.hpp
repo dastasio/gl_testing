@@ -8,8 +8,8 @@ class Window {
 public:
     static Window& instance(const char* t,
                             int v_maj = 4, int v_min = 1,
-                            int x = PUNDEF, int y = PUNDEF,
-                            int w = 1024, int h = 720) {
+                            int w = 1024, int h = 720,
+                            int x = PUNDEF, int y = PUNDEF) {
         static Window* inst = new Window(t, x, y, w, h, v_maj, v_min);
         return *inst;
     }
