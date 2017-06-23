@@ -36,6 +36,8 @@ Program::Program(const char* vert_path, const char* frag_path) :
 vertex(vert_path), fragment(frag_path) {
 }
 
+
+
 void Program::compile() {
     GLuint vert = this->vertex.compile(GL_VERTEX_SHADER);
     GLuint frag = this->fragment.compile(GL_FRAGMENT_SHADER);
@@ -60,10 +62,14 @@ void Program::compile() {
     this->fragment.~Shader();
 }
 
+
+/* Func: Use
+ * ---------------------------------------
+ * sets its program as the currently active one
+ */
 void Program::use() {
     glUseProgram(this->program);
 }
-
 
 
 GLuint Shader::compile(GLenum type) {
@@ -88,6 +94,20 @@ GLuint Shader::compile(GLenum type) {
 }
 
 
+/* Func: getUniformLocation
+ * ---------------------------------------------------------
+ * gets location of the uniform variable with given name
+ *
+ * name: name of the variable whose location is requested
+ *
+ * returns: location of the variable on success / -1 on failure
+ */
+GLint Program::getUniformLocation(const GLchar *name) {
+    GLint loc = glGetUniformLocation(this->program, name);
+    if (loc == -1)
+        std::cout << "[ERROR] Requested location of inexisting variable '" << name << "'" << std::endl;
+    return loc;
+}
 
 
 

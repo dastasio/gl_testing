@@ -70,6 +70,11 @@ void Window::printStats() {
 }
 
 
+void Window::Swap() {
+    SDL_GL_SwapWindow(this->window);
+}
+
+
 
 
 

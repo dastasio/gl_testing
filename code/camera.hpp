@@ -11,8 +11,11 @@ public:
     
     glm::mat4 getMatrix();
     
+    /* movement functions */
+    void Up(float dist);
     void Right(float dist);
     void Forward(float dist);
+    /* rotation functions */
     void Pitch(float angle);
     void Yaw(float angle);
 private:

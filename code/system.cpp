@@ -6,22 +6,26 @@
 #define BUFFER_OFFSET(x) (GLvoid*)(x)
 
 void tsys::Init() {
-    /* creating window */
+    /* creating window nad context initialization*/
     Window &win = Window::instance("test1", 4, 1, WIDTH, HEIGHT);
+    /* initializing OpenGL program */
     p = new Program("shader.vert", "shader.frag");
+    p->compile();
+    /* initializing camera manager */
+    cam_man = new CameraMan(p);
     
     win.printStats();
     
     InitBuffers();
+    
+    cam_man->Add("main", glm::vec3(0.0, 0.0, -3.0));
+    cam_man->SetActive("main");
 }
 
 
 void tsys::Loop() {
     Window& win = Window::instance("test1");
-    SDL_Window* window = win.getWindow();
-    p->compile();
     p->use();
-    GLint uniformCamLoc = glGetUniformLocation(p->getProgram(), "camera");
     
     SDL_SetRelativeMouseMode(SDL_TRUE);
     
@@ -29,47 +33,56 @@ void tsys::Loop() {
     
     while (input()) {
         glClear(GL_COLOR_BUFFER_BIT);
-        glUniformMatrix4fv(uniformCamLoc, 1, GL_FALSE, glm::value_ptr(cam.getMatrix()));
+        cam_man->SendUniformMatrix();
         
         glBindBuffer(GL_ARRAY_BUFFER, vbo);
         glDrawArrays(GL_TRIANGLES, 0, 6);
         
-        SDL_GL_SwapWindow(window);
+        win.Swap();
     }
 }
 
 
 
 bool tsys::input() {
+    static const Uint8 *state = SDL_GetKeyboardState(NULL);
     SDL_Event e;
     while (SDL_PollEvent(&e)) {
         if (e.type == SDL_QUIT)
             return false;
     }
     
-    static const Uint8 *state = SDL_GetKeyboardState(NULL);
+    double rotation_speed = -2 * M_PI / WIDTH;
+    double movement_speed = 0.2;
     
     if (state[SDL_SCANCODE_ESCAPE]) {
         return false;
     }
     if (state[SDL_SCANCODE_D]) {
-        cam.Right(0.2);
+        cam_man->MoveCamera(MOVE_RIGHT, movement_speed);
     }
     if (state[SDL_SCANCODE_A]) {
-        cam.Right(-0.2);
+        cam_man->MoveCamera(MOVE_RIGHT, -movement_speed);
     }
     if (state[SDL_SCANCODE_W]) {
-        cam.Forward(0.2);
+        cam_man->MoveCamera(MOVE_FORWARD, movement_speed);
     }
     if (state[SDL_SCANCODE_S]) {
-        cam.Forward(-0.2);
+        cam_man->MoveCamera(MOVE_FORWARD, -movement_speed);
+    }
+    if (state[SDL_SCANCODE_SPACE]) {
+        cam_man->MoveCamera(MOVE_UP, movement_speed);
+    }
+    if (state[SDL_SCANCODE_LSHIFT]) {
+        cam_man->MoveCamera(MOVE_UP, -movement_speed);
     }
     
-    int x, y;
-    SDL_GetRelativeMouseState(&x, &y);
-    double speed = -2 * M_PI / WIDTH;
-    cam.Pitch(y * speed);
-    cam.Yaw(x * speed);
+    /* getting mouse movement */
+    int dx, dy;
+    SDL_GetRelativeMouseState(&dx, &dy);
+    
+    cam_man->RotateCamera(ROT_PITCH, dy * rotation_speed);
+    cam_man->RotateCamera(ROT_YAW, dx * rotation_speed);
     
     return true;
 }

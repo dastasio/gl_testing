@@ -18,6 +18,8 @@ public:
         return this->window;
     }
     
+    void Swap();
+    
     void printStats();
 private:
     Window(const char* t, int x, int y, int w, int h, int maj, int min);

@@ -29,6 +29,7 @@ public:
     void compile();
     void use();
     
+    GLint getUniformLocation(const GLchar* name);
     GLuint getProgram() { return program; }
 private:
     Shader vertex, fragment;
