@@ -13,7 +13,10 @@ void tsys::Init() {
     p->compile();
     /* initializing camera manager */
     cam_man = new CameraMan(p);
+    /* initializing texture manager */
+    tman = new TextureMan();
     
+    /* printing opengl version */
     win.printStats();
     
     InitBuffers();
@@ -31,15 +34,18 @@ void tsys::Loop() {
     
     glClearColor(0.0, 0.3, 0.5, 1.0);
     
+    glBindVertexArray(vao);
     while (input()) {
         glClear(GL_COLOR_BUFFER_BIT);
+        tman->Use("brick", 0, p->getUniformLocation("tex"));
         cam_man->SendUniformMatrix();
         
         glBindBuffer(GL_ARRAY_BUFFER, vbo);
-        glDrawArrays(GL_TRIANGLES, 0, 6);
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
         
         win.Swap();
     }
+    glBindVertexArray(0);
 }
 
 
@@ -92,10 +98,18 @@ bool tsys::input() {
 
 
 void tsys::InitBuffers() {
+    size_t float_s = sizeof(GLfloat);
+    
     GLfloat verts[] = {
-        -0.75, -0.75, 1.0,
-         0.75, -0.75, 1.0,
-         0.00,  0.75, 1.0
+        -1.0, -1.0, 0.0,   0.0, 0.0,
+         1.0, -1.0, 0.0,   1.0, 0.0,
+         1.0,  1.0, 0.0,   1.0, 1.0,
+        -1.0,  1.0, 0.0,   0.0, 1.0
+    };
+    
+    GLuint indices[] = {
+        0, 1, 2,
+        2, 3, 0
     };
     
     glGenVertexArrays(1, &vao);
@@ -104,9 +118,20 @@ void tsys::InitBuffers() {
     glGenBuffers(1, &vbo);
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
     
+    glGenBuffers(1, &ebo);
+    
     glBufferData(GL_ARRAY_BUFFER, sizeof(verts), verts, GL_STATIC_DRAW);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_TRUE, 0, BUFFER_OFFSET(0));
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), BUFFER_OFFSET(0));
     glEnableVertexAttribArray(0);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), BUFFER_OFFSET(3 * float_s));
+    glEnableVertexAttribArray(1);
+    
+    tman->Add("brick1024.png", "brick");
+    
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+    
+    glBindVertexArray(0);
 }
 
 
