@@ -5,9 +5,10 @@ endif()
 
 add_executable (${EXEC_NAME} "main.cpp")
 add_library (gl_testing SHARED
-	shaders.cpp system.cpp window.cpp camera.cpp camera_manager.cpp texture.cpp 
-	shaders.hpp system.hpp window.hpp camera.hpp camera_manager.hpp texture.hpp oglin.hpp
-	shader.vert shader.frag)
+	shaders.cpp system.cpp window.cpp camera.cpp camera_manager.cpp texture.cpp program_manager.cpp 
+	shaders.hpp system.hpp window.hpp camera.hpp camera_manager.hpp texture.hpp program_manager.hpp oglin.hpp
+	shader.vert shader.frag
+	container2.png container2_specular.png)
 
 target_link_libraries (${EXEC_NAME} gl_testing)
 target_link_libraries (gl_testing ${OPENGL_LIBRARIES} ${SDL2_LIBRARY} ${SDL2_IMAGE_LIBRARY} ${GLEW_LIBRARY})

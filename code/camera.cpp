@@ -38,7 +38,7 @@ Camera::~Camera() {
  * returns: matrix that includes camera space and perspective transform
  */
 mat4 Camera::getMatrix() {
-    return (perspective(45.f, AR, 0.f, 100.f) * this->matrix);
+    return (perspective(45.f, AR, 0.01f, 100.f) * this->matrix);
 }
 
 /* Func: SetMatrix
