@@ -10,6 +10,7 @@ public:
     ~Camera();
     
     glm::mat4 getMatrix();
+    glm::vec3 getPosition();
     
     /* movement functions */
     void Up(float dist);

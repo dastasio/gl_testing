@@ -41,6 +41,14 @@ mat4 Camera::getMatrix() {
     return (perspective(45.f, AR, 0.01f, 100.f) * this->matrix);
 }
 
+/* Getter: Position
+ * --------------------------------------------------
+ * returns: camera position in vec3
+ */
+vec3 Camera::getPosition() {
+    return this->pos;
+}
+
 /* Func: SetMatrix
  * --------------------------------------------------
  * Reinitializes matrix with currently saved vectors

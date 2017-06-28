@@ -14,6 +14,13 @@ public:
     bool SetActive(const char* name);
     void Erase(const char* name);
     
+    /* this is temporary */
+    Program* getProgram(const char* name) {
+        return programs[name];
+    }
+    GLint GetActiveUniformLocation(const char* req) {
+        return programs[active_name]->getUniformLocation(req);
+    }
     
     /* functionalities */
     
@@ -23,6 +30,4 @@ private:
     
     std::map<const char*, Program*> programs;
     const char* active_name;
-    
-    GLint UniformCamLoc;
 };

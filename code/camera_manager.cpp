@@ -4,10 +4,7 @@
 #define VEC_UP glm::vec3(0.0, 1.0, 0.0)
 #define VEC_TARGET glm::vec3(0.0, 0.0, 1.0)
 
-CameraMan::CameraMan(Program *p) {
-    this->prog = p;
-    
-    this->UniformCamLoc = prog->getUniformLocation("camera");
+CameraMan::CameraMan() {
 }
 
 CameraMan::~CameraMan() {
@@ -17,10 +14,8 @@ CameraMan::~CameraMan() {
     }
     
     delete &this->cams;
-    delete &this->UniformCamLoc;
     delete active_cam;
     delete active_name;
-    std::free(prog);
 }
 
 
@@ -138,8 +133,14 @@ void CameraMan::RotateCamera(RotEnum dir, double angle) {
  * Sends active camera's matrix to stored location
  */
 void CameraMan::SendUniformMatrix() {
+    static ProgramMan &pman = ProgramMan::instance();
     glm::mat4 matrix = active_cam->getMatrix();
-    glUniformMatrix4fv(this->UniformCamLoc, 1, GL_FALSE, glm::value_ptr(matrix));
+    glUniformMatrix4fv(pman.GetActiveUniformLocation("camera"), 1, GL_FALSE, glm::value_ptr(matrix));
 }
 
 
+void CameraMan::SendEyePosition() {
+    static ProgramMan &pman = ProgramMan::instance();
+    glm::vec3 eye = active_cam->getPosition();
+    glUniform3f(pman.GetActiveUniformLocation("eye"), eye.x, eye.y, eye.z);
+}

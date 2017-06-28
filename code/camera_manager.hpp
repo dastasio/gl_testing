@@ -1,6 +1,6 @@
 #pragma once
 #include "camera.hpp"
-#include "shaders.hpp"
+#include "program_manager.hpp"
 #include <map>
 
 enum MovEnum {
@@ -16,7 +16,7 @@ enum RotEnum {
 
 class CameraMan {
 public:
-    CameraMan(Program* p);
+    CameraMan();
     ~CameraMan();
     
     /* modifiers */
@@ -30,12 +30,10 @@ public:
     
     /* functionalities */
     void SendUniformMatrix();
+    void SendEyePosition();
     
 private:
     std::map<const char*, Camera*> cams;
     Camera* active_cam;
     const char* active_name;
-    
-    GLint UniformCamLoc;
-    Program *prog;
 };

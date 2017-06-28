@@ -10,6 +10,20 @@ void ProgramMan::NewProgram(const char *name, const char *vsh, const char *fsh) 
     else {
         /* if it's not a duplicate name, create new program */
         this->programs[name] = new Program(vsh, fsh);
+        this->programs[name]->compile();
+        this->active_name = name;
+    }
+}
+
+
+void ProgramMan::Erase(const char *name) {
+    auto deleturum = this->programs.find(name);
+    
+    if (deleturum == programs.end()) {
+        std::cout << "[ERROR] Trying to delete inexistent program '" << name << "'" << std::endl;
+    }
+    else {
+        this->programs.erase(deleturum);
     }
 }
 
@@ -22,5 +36,6 @@ bool ProgramMan::SetActive(const char *name) {
     }
     
     p->second->use();
+    this->active_name = name;
     return true;
 }
