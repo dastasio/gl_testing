@@ -1,11 +1,13 @@
 #include "system.hpp"
 #include "window.hpp"
 #include "oglin.hpp"
+#include "light_manager.hpp"
 #include <iostream>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #define BUFFER_OFFSET(x) (GLvoid*)(x)
 
+using namespace glm;
 void tsys::Init() {
     /* creating window nad context initialization*/
     Window &win = Window::instance("test1", 4, 1, WIDTH, HEIGHT);
@@ -22,13 +24,16 @@ void tsys::Init() {
     
     InitBuffers();
     
-    cam_man->Add("main", glm::vec3(0.0, 0.0, -3.0));
+    cam_man->Add("main", vec3(0.0, 0.0, -3.0));
     cam_man->SetActive("main");
 }
 
 
 void tsys::Loop() {
     Window& win = Window::instance("test1");
+    LightMan* lman = new LightMan();
+    lman->NewLight(vec3(0.0, 1.0, 0.0), vec3(0.7, 1.0, 1.0));
+    lman->NewLight(vec3(1.0, 0.3, -2.0), vec3(1.0, 0.0, 0.1));
     
     SDL_SetRelativeMouseMode(SDL_TRUE);
     
@@ -38,22 +43,25 @@ void tsys::Loop() {
     while (input()) {
         glEnable(GL_DEPTH_TEST);
         p.SetActive("cube");
-        glUniform3f(p.GetActiveUniformLocation("lights[0].pos"), 0.0, 1.0, 0.0);
+        lman->CalculateLighting();
         
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         tman->Use("brick", 0, p.GetActiveUniformLocation("tex"));
         cam_man->SendUniformMatrix();
         cam_man->SendEyePosition();
-        glm::mat4 model = glm::mat4(1.0);
-        glUniformMatrix4fv(p.GetActiveUniformLocation("model"), 1, GL_FALSE, glm::value_ptr(model));
-        glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, nullptr);
+        mat4 model = mat4(1.0);
+        glUniformMatrix4fv(p.GetActiveUniformLocation("model"), 1, GL_FALSE, value_ptr(model));
+        sc->Draw();
         
         p.SetActive("light");
         cam_man->SendUniformMatrix();
-        //model = glm::scale(model, glm::vec3(0.1));
-        model = glm::translate(model, glm::vec3(0.0, 1.0, 0.0));
-        model = glm::scale(model, glm::vec3(0.2));
-        glUniformMatrix4fv(p.GetActiveUniformLocation("model"), 1, GL_FALSE, glm::value_ptr(model));
+        model = translate(model, vec3(0.0, 1.0, 0.0));
+        model = scale(model, vec3(0.2));
+        glUniformMatrix4fv(p.GetActiveUniformLocation("model"), 1, GL_FALSE, value_ptr(model));
+        glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, nullptr);
+        model = translate(mat4(1.0), vec3(1.0, 0.3, -2.0));
+        model = scale(model, vec3(0.2));
+        glUniformMatrix4fv(p.GetActiveUniformLocation("model"), 1, GL_FALSE, value_ptr(model));
         glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, nullptr);
         
         win.Swap();
@@ -163,22 +171,7 @@ void tsys::InitBuffers() {
     
     vaoman->NewVAO(10);
     {
-        GLuint vbo, ebo;
-        glGenBuffers(1, &vbo);
-        glBindBuffer(GL_ARRAY_BUFFER, vbo);
-        
-        glGenBuffers(1, &ebo);
-        
-        glBufferData(GL_ARRAY_BUFFER, sizeof(verts), verts, GL_STATIC_DRAW);
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * float_s, BUFFER_OFFSET(0));
-        glEnableVertexAttribArray(0);
-        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * float_s, BUFFER_OFFSET(3 * float_s));
-        glEnableVertexAttribArray(1);
-        glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * float_s, BUFFER_OFFSET(6 * float_s));
-        glEnableVertexAttribArray(2);
-        
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLuint) * 36, indices, GL_STATIC_DRAW);
+        sc = new Scene("cube.obj");
     }
     
     tman->Add("container2.png", "brick");
