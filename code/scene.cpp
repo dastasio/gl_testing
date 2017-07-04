@@ -2,6 +2,7 @@
 #include <assimp/Importer.hpp>
 #include <assimp/postprocess.h>
 #include <string>
+#define BUF_OFFSET(x) (GLvoid*)(x)
 
 Scene::Scene(const char* path) {
     Assimp::Importer importer;
@@ -68,6 +69,13 @@ void Scene::ProcessMesh(aiMesh *mesh, const aiScene *scene) {
         }
     }
     
+    
+    /* processing textures */
+    aiMaterial *mat = scene->mMaterials[mesh->mMaterialIndex];
+    for (int i = 0; i < mat->GetTextureCount(aiTextureType_DIFFUSE); ++i) {
+        
+    }
+    
     this->meshes.push_back(new Mesh(v_data, v_indices));
 }
 
@@ -77,14 +85,11 @@ void Scene::InitBuffers() {
     std::vector<GLuint> total_indices;
     /* gathering data */
     for (GLuint i = 0; i < meshes.size(); ++i) {
-        static int currentNumVertices = 0;
+        meshes[i]->buf_offset = total_vertices.size();
+        meshes[i]->indices_offset = total_indices.size();
         total_vertices.insert(total_vertices.end(), meshes[i]->vertices.begin(), meshes[i]->vertices.end());
-        for (GLuint &index : meshes[i]->indices) {
-            total_indices.push_back(index + currentNumVertices);
-        }
-        currentNumVertices += meshes[i]->numVertices;
+        total_indices.insert(total_indices.end(), meshes[i]->indices.begin(), meshes[i]->indices.end());
     }
-    this->num_indices = total_indices.size();
     
     size_t fsize = sizeof(GLfloat);
     GLuint vbo, ebo;
@@ -95,15 +100,31 @@ void Scene::InitBuffers() {
     glGenBuffers(1, &ebo);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, total_indices.size() * sizeof(GLuint), total_indices.data(), GL_STATIC_DRAW);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, fsize * 8, (GLvoid*)0);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, fsize * 8, (GLvoid*)(3 * fsize));
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, fsize * 8, (GLvoid*)(6 * fsize));
+    SetAttribPointers(0);
+}
+
+void Scene::SetAttribPointers(size_t offset) {
+    size_t fsize = sizeof(GLfloat);
+    GLvoid* off0 = BUF_OFFSET(offset);
+    GLvoid* off1 = BUF_OFFSET(offset + 3 * fsize);
+    GLvoid* off2 = BUF_OFFSET(offset + 6 * fsize);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, fsize * 8, off0);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, fsize * 8, off1);
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, fsize * 8, off2);
     glEnableVertexAttribArray(0);
     glEnableVertexAttribArray(1);
     glEnableVertexAttribArray(2);
 }
 
 void Scene::Draw() {
-    glDrawElements(GL_TRIANGLES, num_indices, GL_UNSIGNED_INT, 0);
+    /*for (int i = 0; i < meshes.size(); ++i) {
+        SetAttribPointers(meshes[i]->buf_offset);
+        GLuint start = meshes[i]->indices_offset;
+        GLsizei count = meshes[i]->num_indices;
+        GLuint end = start + count;
+        glDrawRangeElements(GL_TRIANGLES, start, end, count, GL_UNSIGNED_INT, 0);
+    }*/
+    SetAttribPointers(0);
+    glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
 }
 

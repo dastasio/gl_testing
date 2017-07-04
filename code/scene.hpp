@@ -11,10 +11,10 @@ public:
 private:
     std::vector<Mesh*> meshes;
     const char* directory;
-    GLuint num_indices;
     
     void ProcessNode(aiNode *node, const aiScene* scene);
     void ProcessMesh(aiMesh *mesh, const aiScene* scene);
     
+    void SetAttribPointers(size_t offset);
     void InitBuffers();
 };

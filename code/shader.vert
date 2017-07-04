@@ -13,5 +13,5 @@ void main() {
 	txc = tcoord;
 	normal = normalize(Normal);
 	fragpos = vec3(model * vec4(vpos, 1.0));
-	gl_Position = camera * model * vec4(fragpos,1.0);
+	gl_Position = camera * vec4(fragpos,1.0);
 }
