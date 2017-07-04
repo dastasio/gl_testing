@@ -7,7 +7,7 @@ struct Mesh {
     std::vector<GLuint> indices;
     GLuint num_vertices;
     GLuint num_indices;
-    size_t buf_offset;
+    GLuint buf_offset;
     size_t indices_offset;
     
     Mesh(std::vector<GLfloat> verts, std::vector<GLuint> inds) :

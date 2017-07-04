@@ -100,31 +100,32 @@ void Scene::InitBuffers() {
     glGenBuffers(1, &ebo);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, total_indices.size() * sizeof(GLuint), total_indices.data(), GL_STATIC_DRAW);
-    SetAttribPointers(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, fsize * 8, (GLvoid*)(0));
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, fsize * 8, (GLvoid*)(3 * fsize));
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, fsize * 8, (GLvoid*)(6 * fsize));
+    glEnableVertexAttribArray(0);
+    glEnableVertexAttribArray(1);
+    glEnableVertexAttribArray(2);
 }
 
-void Scene::SetAttribPointers(size_t offset) {
+void Scene::SetAttribPointers(GLvoid* offset) {
     size_t fsize = sizeof(GLfloat);
-    GLvoid* off0 = BUF_OFFSET(offset);
-    GLvoid* off1 = BUF_OFFSET(offset + 3 * fsize);
-    GLvoid* off2 = BUF_OFFSET(offset + 6 * fsize);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, fsize * 8, off0);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, fsize * 8, off1);
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, fsize * 8, off2);
+    GLvoid *punt = offset;
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, fsize * 8, (GLvoid*)(0));
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, fsize * 8, (GLvoid*)(3 * fsize));
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, fsize * 8, (GLvoid*)(6 * fsize));
     glEnableVertexAttribArray(0);
     glEnableVertexAttribArray(1);
     glEnableVertexAttribArray(2);
 }
 
 void Scene::Draw() {
-    /*for (int i = 0; i < meshes.size(); ++i) {
-        SetAttribPointers(meshes[i]->buf_offset);
+    for (int i = 0; i < meshes.size(); ++i) {
+        SetAttribPointers((GLchar*)(meshes[i]->buf_offset));
         GLuint start = meshes[i]->indices_offset;
         GLsizei count = meshes[i]->num_indices;
         GLuint end = start + count;
         glDrawRangeElements(GL_TRIANGLES, start, end, count, GL_UNSIGNED_INT, 0);
-    }*/
-    SetAttribPointers(0);
-    glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+    }
 }
 
