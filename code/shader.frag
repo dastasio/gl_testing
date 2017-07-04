@@ -24,7 +24,7 @@ void main() {
 		Lintensity += calcLight(i);
 	}
 
-	color = vec4((vec3(0.1) + Lintensity), 1.0) * texture(tex, txc);
+	color = vec4((vec3(0.1) + Lintensity), 1.0) * vec4(1.0) + (texture(tex, txc) * 0);
 }
 
 vec3 calcLight(int n) {

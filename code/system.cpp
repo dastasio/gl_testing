@@ -12,7 +12,6 @@ void tsys::Init() {
     /* creating window nad context initialization*/
     Window &win = Window::instance("test1", 4, 1, WIDTH, HEIGHT);
     /* initializing OpenGL program */
-    p.NewProgram("light", "light.vert", "light.frag");
     p.NewProgram("cube", "shader.vert", "shader.frag");
     /* initializing camera manager */
     cam_man = new CameraMan();
@@ -32,41 +31,37 @@ void tsys::Init() {
 void tsys::Loop() {
     Window& win = Window::instance("test1");
     LightMan* lman = new LightMan();
-    lman->NewLight(vec3(0.0, 1.0, 0.0), vec3(0.7, 1.0, 1.0));
-    lman->NewLight(vec3(1.0, 0.3, -2.0), vec3(1.0, 0.0, 0.1));
+    lman->NewLight(vec3(0.0, 3.0, 0.0), vec3(0.7, 1.0, 1.0));
+    lman->NewLight(vec3(2.0, 1.3, -3.0), vec3(1.0, 0.0, 0.1));
     
     SDL_SetRelativeMouseMode(SDL_TRUE);
     
-    glClearColor(0.0, 0.3, 0.5, 1.0);
+    glClearColor(0.0, 0.1, 0.15, 1.0);
     
-    vaoman->BindVAO(10);
     while (input()) {
+        vaoman.BindVAO(10);
         glEnable(GL_DEPTH_TEST);
-        p.SetActive("cube");
-        lman->CalculateLighting();
-        
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        
+        p.SetActive("cube");
+        GLuint attribs_pnt[3] = {0, 1, 2};
+        vaoman.EnableAttrib(3, attribs_pnt);
+        lman->CalculateLighting();
         tman->Use("brick", 0, p.GetActiveUniformLocation("tex"));
         cam_man->SendUniformMatrix();
         cam_man->SendEyePosition();
         mat4 model = mat4(1.0);
         glUniformMatrix4fv(p.GetActiveUniformLocation("model"), 1, GL_FALSE, value_ptr(model));
         sc->Draw();
+        vaoman.DisableAttrib(3, attribs_pnt);
         
-        p.SetActive("light");
+        p.SetActive("lights");
         cam_man->SendUniformMatrix();
-        model = translate(model, vec3(0.0, 1.0, 0.0));
-        model = scale(model, vec3(0.2));
-        glUniformMatrix4fv(p.GetActiveUniformLocation("model"), 1, GL_FALSE, value_ptr(model));
-        glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, nullptr);
-        model = translate(mat4(1.0), vec3(1.0, 0.3, -2.0));
-        model = scale(model, vec3(0.2));
-        glUniformMatrix4fv(p.GetActiveUniformLocation("model"), 1, GL_FALSE, value_ptr(model));
-        glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, nullptr);
+        lman->RenderLights();
         
         win.Swap();
     }
-    vaoman->Unbind();
+    vaoman.Unbind();
 }
 
 
@@ -169,13 +164,13 @@ void tsys::InitBuffers() {
         indices[i] = i;
     }
     
-    vaoman->NewVAO(10);
+    vaoman.NewVAO(10);
     {
-        sc = new Scene("cube.obj");
+        sc = new Scene("cube.dae");
     }
     
     tman->Add("container2.png", "brick");
-    vaoman->Unbind();
+    vaoman.Unbind();
 }
 
 

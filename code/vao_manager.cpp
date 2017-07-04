@@ -40,3 +40,18 @@ void VAOMan::BindVAO(int ID) {
 void VAOMan::Unbind() {
     glBindVertexArray(0);
 }
+
+
+
+void VAOMan::EnableAttrib(GLuint count, GLuint *indices) {
+    for (GLuint i = 0; i < count; ++i) {
+        glEnableVertexAttribArray(indices[i]);
+    }
+}
+
+
+void VAOMan::DisableAttrib(GLuint count, GLuint *indices) {
+    for (GLuint i = 0; i < count; ++i) {
+        glDisableVertexAttribArray(indices[i]);
+    }
+}
