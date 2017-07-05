@@ -16,6 +16,6 @@ private:
     void ProcessNode(aiNode *node, const aiScene* scene);
     void ProcessMesh(aiMesh *mesh, const aiScene* scene);
     
-    void SetAttribPointers(GLvoid* offset);
+    void SetAttribPointers(size_t offset);
     void InitBuffers();
 };
