@@ -11,6 +11,7 @@ public:
 private:
     std::vector<Mesh*> meshes;
     const char* directory;
+    GLuint vbo;
     
     void ProcessNode(aiNode *node, const aiScene* scene);
     void ProcessMesh(aiMesh *mesh, const aiScene* scene);

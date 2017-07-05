@@ -92,7 +92,7 @@ void Scene::InitBuffers() {
     }
     
     size_t fsize = sizeof(GLfloat);
-    GLuint vbo, ebo;
+    GLuint ebo;
     glGenBuffers(1, &vbo);
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
     glBufferData(GL_ARRAY_BUFFER, total_vertices.size() * fsize, total_vertices.data(), GL_STATIC_DRAW);
