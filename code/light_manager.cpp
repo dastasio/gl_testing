@@ -12,7 +12,7 @@ LightMan::LightMan() {
     this->UniformArraySizeLocation = pman.GetActiveUniformLocation("N_LIGHTS");
     
     /* creating program for light rendering */
-    pman.NewProgram("lights", "light.vert", "light.frag");
+    pman.NewProgram("lights", "assets/light.vert", "assets/light.frag");
     this->UniformColorLocation = pman.GetActiveUniformLocation("lightColor");
     
     static bool vao_is_init = false;

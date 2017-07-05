@@ -12,11 +12,9 @@ void tsys::Init() {
     /* creating window nad context initialization*/
     Window &win = Window::instance("test1", 4, 1, WIDTH, HEIGHT);
     /* initializing OpenGL program */
-    p.NewProgram("cube", "shader.vert", "shader.frag");
+    p.NewProgram("main", "assets/shader.vert", "assets/shader.frag");
     /* initializing camera manager */
     cam_man = new CameraMan();
-    /* initializing texture manager */
-    tman = new TextureMan();
     
     /* printing opengl version */
     win.printStats();
@@ -29,7 +27,7 @@ void tsys::Init() {
 
 
 void tsys::Loop() {
-    Window& win = Window::instance("test1");
+    Window& win = Window::instance("");
     LightMan* lman = new LightMan();
     lman->NewLight(vec3(0.0, 3.0, 0.0), vec3(0.7, 1.0, 1.0));
     lman->NewLight(vec3(2.0, 1.3, -3.0), vec3(1.0, 0.0, 0.1));
@@ -43,9 +41,8 @@ void tsys::Loop() {
         glEnable(GL_DEPTH_TEST);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         
-        p.SetActive("cube");
+        p.SetActive("main");
         lman->CalculateLighting();
-        tman->Use("brick", 0, p.GetActiveUniformLocation("tex"));
         cam_man->SendUniformMatrix();
         cam_man->SendEyePosition();
         mat4 model = mat4(1.0);
@@ -62,6 +59,13 @@ void tsys::Loop() {
 }
 
 
+void tsys::InitBuffers() {
+    vaoman.NewVAO(10);
+    {
+        sc = new Scene("assets/container.fbx");
+    }
+    vaoman.Unbind();
+}
 
 bool tsys::input() {
     static const Uint8 *state = SDL_GetKeyboardState(NULL);
@@ -108,14 +112,5 @@ bool tsys::input() {
 
 
 
-void tsys::InitBuffers() {
-    vaoman.NewVAO(10);
-    {
-        sc = new Scene("cube.obj");
-    }
-    
-    tman->Add("container2.png", "brick");
-    vaoman.Unbind();
-}
 
 

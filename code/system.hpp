@@ -11,7 +11,6 @@ namespace tsys {
     Scene *sc;
     
     CameraMan *cam_man;
-    TextureMan *tman;
     
     void Init();
     void InitBuffers();

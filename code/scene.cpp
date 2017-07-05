@@ -1,8 +1,12 @@
 #include "scene.hpp"
+#include "texture.hpp"
+#include "program_manager.hpp"
 #include <assimp/Importer.hpp>
 #include <assimp/postprocess.h>
 #include <string>
 #define BUF_OFFSET(x) (GLvoid*)(x)
+
+TextureMan* tex_man = new TextureMan();
 
 Scene::Scene(const char* path) {
     Assimp::Importer importer;
@@ -72,11 +76,18 @@ void Scene::ProcessMesh(aiMesh *mesh, const aiScene *scene) {
     
     /* processing textures */
     aiMaterial *mat = scene->mMaterials[mesh->mMaterialIndex];
+    std::vector<const GLchar*> textureList;
     for (int i = 0; i < mat->GetTextureCount(aiTextureType_DIFFUSE); ++i) {
-        
+        aiString t_path;
+        mat->GetTexture(aiTextureType_DIFFUSE, i, &t_path);
+        std::string texture_path(directory);
+        texture_path += t_path.C_Str();
+        tex_man->Add(texture_path.c_str(), texture_path.c_str());
+        textureList.push_back(texture_path.c_str());
     }
     
     this->meshes.push_back(new Mesh(v_data, v_indices));
+    this->meshes[meshes.size() - 1]->textures = textureList;
 }
 
 
@@ -113,8 +124,14 @@ void Scene::SetAttribPointers(size_t offset) {
 }
 
 void Scene::Draw() {
+    ProgramMan &prog_man = ProgramMan::instance();
+    
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
     for (int i = 0; i < meshes.size(); ++i) {
+        if (meshes[i]->textures.size() > 0) {
+            tex_man->Use(meshes[i]->textures[0], 0, prog_man.GetActiveUniformLocation("mat.diffuse"));
+        }
+        
         SetAttribPointers(meshes[i]->buf_offset);
         GLuint start = meshes[i]->indices_offset;
         GLsizei count = meshes[i]->num_indices;

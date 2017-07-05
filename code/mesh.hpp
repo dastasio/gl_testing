@@ -5,6 +5,7 @@
 struct Mesh {
     std::vector<GLfloat> vertices;
     std::vector<GLuint> indices;
+    std::vector<const GLchar*> textures;
     GLuint num_vertices;
     GLuint num_indices;
     GLuint buf_offset;

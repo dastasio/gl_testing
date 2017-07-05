@@ -2,6 +2,10 @@
 #define LIGHT_POS(x) lights[x * 2]
 #define LIGHT_COLOR(x) lights[x * 2 + 1]
 vec3 calcLight(int n);
+struct Material {
+	vec3 color;
+	sampler2D diffuse;
+};
 
 in vec2 txc;
 in vec3 normal;
@@ -16,7 +20,7 @@ out vec4 color;
 uniform vec3 lights[200];
 uniform int N_LIGHTS;
 uniform vec3 eye;
-uniform sampler2D tex;
+uniform Material mat;
 
 void main() {
 	vec3 Lintensity = vec3(0.0);
@@ -24,7 +28,7 @@ void main() {
 		Lintensity += calcLight(i);
 	}
 
-	color = vec4((vec3(0.1) + Lintensity), 1.0) * texture(tex, txc);
+	color = vec4((vec3(0.1) + Lintensity), 1.0) * texture(mat.diffuse, txc);
 }
 
 vec3 calcLight(int n) {
