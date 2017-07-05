@@ -23,7 +23,7 @@ LightMan::LightMan() {
 }
 
 int LightMan::NewLight(glm::vec3 p, glm::vec3 c) {
-    this->lights.push_back(Light(p.x, p.y, p.z, c.r, c.g, c.b));
+    this->lights.emplace_back(p, c);
     return lights.size() - 1;
 }
 
@@ -33,7 +33,7 @@ void LightMan::EraseLight(int light_id) {
 
 
 void LightMan::CalculateLighting() {
-    glUniform3fv(UniformArrayLocation, lights.size() * 2, glm::value_ptr(lights[0].position));
+    glUniform3fv(UniformArrayLocation, lights.size() * 4, glm::value_ptr(lights[0].position));
     glUniform1i(UniformArraySizeLocation, this->lights.size());
 }
 
@@ -45,7 +45,7 @@ void LightMan::RenderLights() {
     
     GLint UniformModelMatrixLocation = pman.GetActiveUniformLocation("model");
     for (int i = 0; i < this->lights.size(); ++i) {
-        glm::vec3 color = lights[i].color;
+        glm::vec3 color = lights[i].c_diff;
         glm::mat4 transform = glm::mat4(1.0);
         transform = glm::translate(transform, lights[i].position);
         transform = glm::scale(transform, glm::vec3(0.2));

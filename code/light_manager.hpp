@@ -5,15 +5,17 @@
 #include <vector>
 
 struct Light {
-    glm::vec3 position;
-    glm::vec3 color;
+    typedef glm::vec3 vec3;
+    vec3 position;
+    vec3 c_amb;
+    vec3 c_diff;
+    vec3 c_spec;
     
-    Light(GLfloat x, GLfloat y, GLfloat z,
-          GLfloat r, GLfloat g, GLfloat b) :
-    position(x, y, z), color(r, g, b) {}
+    Light(vec3 p, vec3 ca, vec3 cd, vec3 cs) :
+    position(p), c_amb(ca), c_diff(cd), c_spec(cs) {}
     
-    Light(glm::vec3 p, glm::vec3 c) :
-    position(p), color(c) {}
+    Light(vec3 p, vec3 c) :
+    position(p), c_amb(c * 0.07f), c_diff(c), c_spec(c) {}
 };
 
 class LightMan {

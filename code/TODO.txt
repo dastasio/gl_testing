@@ -1,3 +1,4 @@
 Glew initialization
 SDL quit
 Window destroying
+Code cleanup

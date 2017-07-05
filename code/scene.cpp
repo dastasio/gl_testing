@@ -76,18 +76,28 @@ void Scene::ProcessMesh(aiMesh *mesh, const aiScene *scene) {
     
     /* processing textures */
     aiMaterial *mat = scene->mMaterials[mesh->mMaterialIndex];
-    std::vector<const GLchar*> textureList;
+    std::vector<const GLchar*> diffList;
+    std::vector<const GLchar*> specList;
     for (int i = 0; i < mat->GetTextureCount(aiTextureType_DIFFUSE); ++i) {
-        aiString t_path;
-        mat->GetTexture(aiTextureType_DIFFUSE, i, &t_path);
-        std::string texture_path(directory);
-        texture_path += t_path.C_Str();
-        tex_man->Add(texture_path.c_str(), texture_path.c_str());
-        textureList.push_back(texture_path.c_str());
+        aiString filename;
+        mat->GetTexture(aiTextureType_DIFFUSE, i, &filename);
+        std::string t_path(directory);
+        t_path += filename.C_Str();
+        tex_man->Add(t_path.c_str(), t_path.c_str());
+        diffList.push_back(t_path.c_str());
+    }
+    for (int i = 0; i < mat->GetTextureCount(aiTextureType_SPECULAR); ++i) {
+        aiString filename;
+        mat->GetTexture(aiTextureType_SPECULAR, i, &filename);
+        std::string t_path(directory);
+        t_path += filename.C_Str();
+        tex_man->Add(t_path.c_str(), t_path.c_str());
+        specList.push_back(t_path.c_str());
     }
     
     this->meshes.push_back(new Mesh(v_data, v_indices));
-    this->meshes[meshes.size() - 1]->textures = textureList;
+    this->meshes[meshes.size() - 1]->tx_diffuse = diffList;
+    this->meshes[meshes.size() - 1]->tx_specular = specList;
 }
 
 
@@ -128,8 +138,11 @@ void Scene::Draw() {
     
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
     for (int i = 0; i < meshes.size(); ++i) {
-        if (meshes[i]->textures.size() > 0) {
-            tex_man->Use(meshes[i]->textures[0], 0, prog_man.GetActiveUniformLocation("mat.diffuse"));
+        if (meshes[i]->tx_diffuse.size() > 0) {
+            tex_man->Use(meshes[i]->tx_diffuse[0], 0, prog_man.GetActiveUniformLocation("mat.diffuse"));
+        }
+        if (meshes[i]->tx_specular.size() > 0) {
+            tex_man->Use(meshes[i]->tx_specular[0], 1, prog_man.GetActiveUniformLocation("mat.specular"));
         }
         
         SetAttribPointers(meshes[i]->buf_offset);

@@ -29,8 +29,8 @@ void tsys::Init() {
 void tsys::Loop() {
     Window& win = Window::instance("");
     LightMan* lman = new LightMan();
-    lman->NewLight(vec3(0.0, 3.0, 0.0), vec3(0.7, 1.0, 1.0));
-    lman->NewLight(vec3(2.0, 1.3, -3.0), vec3(1.0, 0.0, 0.1));
+    lman->NewLight(vec3(2.0, 1.3, -3.0), vec3(0.8, 0.75, 0.1));
+    lman->NewLight(vec3(0.0, 1.0, 0.0), vec3(0.7, 1.0, 1.0));
     
     SDL_SetRelativeMouseMode(SDL_TRUE);
     
