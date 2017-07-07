@@ -37,7 +37,7 @@ Texture TextureMan::ReadTexture(const char *path) {
 }
 
 
-void TextureMan::Add(const char *path, const char *name) {
+void TextureMan::Add(const char *path, std::string name) {
     Texture tx = ReadTexture(path);
     
     /* texture generation */
@@ -55,15 +55,15 @@ void TextureMan::Add(const char *path, const char *name) {
     
     glBindTexture(GL_TEXTURE_2D, 0);
     
-    
     /* adding texture to map */
-    if (!this->textures.insert(std::pair<const char*, GLuint>(name, glTexture)).second) {
+    auto success =this->textures.insert(std::pair<std::string, GLuint>(name, glTexture));
+    if (!success.second) {
         std::cout << "[WARNING] A texture named '" << name << "' already exists!" << std::endl;
     }
 }
 
 
-void TextureMan::Use(const char *name, GLint index, GLint location) {
+void TextureMan::Use(std::string name, GLint index, GLint location) {
     auto txIterator = this->textures.find(name);
     if (txIterator == textures.end()) {
         std::cout << "[WARNING] Tried to activate inexisting texture '" << name << "'" << std::endl;

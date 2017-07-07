@@ -45,8 +45,6 @@ void tsys::Loop() {
         lman->CalculateLighting();
         cam_man->SendUniformMatrix();
         cam_man->SendEyePosition();
-        mat4 model = mat4(1.0);
-        glUniformMatrix4fv(p.GetActiveUniformLocation("model"), 1, GL_FALSE, value_ptr(model));
         sc->Draw();
         
         p.SetActive("lights");
@@ -62,7 +60,7 @@ void tsys::Loop() {
 void tsys::InitBuffers() {
     vaoman.NewVAO(10);
     {
-        sc = new Scene("assets/container.fbx");
+        sc = new Scene("assets/test_2.dae");
     }
     vaoman.Unbind();
 }

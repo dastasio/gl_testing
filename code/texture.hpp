@@ -1,6 +1,7 @@
 #pragma once
 #include "oglin.hpp"
 #include <map>
+#include <string>
 
 struct Texture;
 
@@ -10,9 +11,9 @@ public:
     ~TextureMan();
     
     Texture ReadTexture(const char* path);
-    void Add(const char* path, const char* name);
+    void Add(const char* path, std::string name);
     
-    void Use(const char* name, GLint index, GLint location);
+    void Use(std::string name, GLint index, GLint location);
 private:
-    std::map<const char*, GLuint> textures;
+    std::map<std::string, GLuint> textures;
 };

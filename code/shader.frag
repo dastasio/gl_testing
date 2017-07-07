@@ -48,7 +48,7 @@ vec3 calcLight(int n) {
 	vec3 ViewDir = normalize(eye - fragpos);
 
 	/* ambient lighting */
-	vec3 final_ambient = L_AMB(n) * 0.07 * vec3(texture(mat.diffuse, txc));
+	vec3 final_ambient = L_AMB(n) * vec3(texture(mat.diffuse, txc));
 
 	/* diffuse lighting */
 	float diff_intensity = max(dot(LightDir, normal), 0.0);

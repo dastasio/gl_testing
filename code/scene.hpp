@@ -14,7 +14,7 @@ private:
     GLuint vbo;
     
     void ProcessNode(aiNode *node, const aiScene* scene);
-    void ProcessMesh(aiMesh *mesh, const aiScene* scene);
+    void ProcessMesh(aiMesh *mesh, const aiScene* scene, aiMatrix4x4 transform);
     
     void SetAttribPointers(size_t offset);
     void InitBuffers();

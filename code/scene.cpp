@@ -4,6 +4,7 @@
 #include <assimp/Importer.hpp>
 #include <assimp/postprocess.h>
 #include <string>
+#include <iostream>
 #define BUF_OFFSET(x) (GLvoid*)(x)
 
 TextureMan* tex_man = new TextureMan();
@@ -11,6 +12,11 @@ TextureMan* tex_man = new TextureMan();
 Scene::Scene(const char* path) {
     Assimp::Importer importer;
     const aiScene *scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_GenNormals | aiProcess_JoinIdenticalVertices);
+    
+    if(!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
+        std::cerr << "[ERROR] Assimp: " << importer.GetErrorString() << std::endl;
+        exit(EXIT_FAILURE);
+    }
     
     std::string dir(path);
     this->directory = dir.substr(0, dir.find_last_of('/')).c_str();
@@ -21,10 +27,16 @@ Scene::Scene(const char* path) {
 
 void Scene::ProcessNode(aiNode *node, const aiScene *scene) {
     for (GLuint i = 0; i < node->mNumMeshes; ++i) {
+        aiMatrix4x4 transform_matrix = aiMatrix4x4(node->mTransformation);
+        aiNode* parent = node->mParent;
+        while (parent != nullptr) {
+            transform_matrix *= parent->mTransformation;
+            parent = parent->mParent;
+        }
         /* getting mesh */
         aiMesh *mesh = scene->mMeshes[node->mMeshes[i]];
         /* processing mesh */
-        ProcessMesh(mesh, scene);
+        ProcessMesh(mesh, scene, transform_matrix);
     }
     
     /* processing subnodes */
@@ -34,7 +46,7 @@ void Scene::ProcessNode(aiNode *node, const aiScene *scene) {
 }
 
 
-void Scene::ProcessMesh(aiMesh *mesh, const aiScene *scene) {
+void Scene::ProcessMesh(aiMesh *mesh, const aiScene *scene, aiMatrix4x4 transform) {
     /* vectors containing data and indices of all the vertices */
     std::vector<GLfloat> v_data;
     std::vector<GLuint> v_indices;
@@ -76,28 +88,30 @@ void Scene::ProcessMesh(aiMesh *mesh, const aiScene *scene) {
     
     /* processing textures */
     aiMaterial *mat = scene->mMaterials[mesh->mMaterialIndex];
-    std::vector<const GLchar*> diffList;
-    std::vector<const GLchar*> specList;
+    std::vector<std::string> diffList;
+    std::vector<std::string> specList;
     for (int i = 0; i < mat->GetTextureCount(aiTextureType_DIFFUSE); ++i) {
         aiString filename;
         mat->GetTexture(aiTextureType_DIFFUSE, i, &filename);
         std::string t_path(directory);
         t_path += filename.C_Str();
-        tex_man->Add(t_path.c_str(), t_path.c_str());
-        diffList.push_back(t_path.c_str());
+        tex_man->Add(t_path.c_str(), t_path);
+        diffList.push_back(t_path);
     }
     for (int i = 0; i < mat->GetTextureCount(aiTextureType_SPECULAR); ++i) {
         aiString filename;
         mat->GetTexture(aiTextureType_SPECULAR, i, &filename);
         std::string t_path(directory);
         t_path += filename.C_Str();
-        tex_man->Add(t_path.c_str(), t_path.c_str());
-        specList.push_back(t_path.c_str());
+        tex_man->Add(t_path.c_str(), t_path);
+        specList.push_back(t_path);
     }
+    
     
     this->meshes.push_back(new Mesh(v_data, v_indices));
     this->meshes[meshes.size() - 1]->tx_diffuse = diffList;
     this->meshes[meshes.size() - 1]->tx_specular = specList;
+    this->meshes[meshes.size() - 1]->transform_mat = transform;
 }
 
 
@@ -106,10 +120,14 @@ void Scene::InitBuffers() {
     std::vector<GLuint> total_indices;
     /* gathering data */
     for (GLuint i = 0; i < meshes.size(); ++i) {
-        meshes[i]->buf_offset = total_vertices.size();
+        static GLuint num_vertices_so_far = 0;
         meshes[i]->indices_offset = total_indices.size();
         total_vertices.insert(total_vertices.end(), meshes[i]->vertices.begin(), meshes[i]->vertices.end());
+        for (auto &index : meshes[i]->indices) {
+            total_indices.push_back(index + num_vertices_so_far);
+        }
         total_indices.insert(total_indices.end(), meshes[i]->indices.begin(), meshes[i]->indices.end());
+        num_vertices_so_far = total_vertices.size();
     }
     
     size_t fsize = sizeof(GLfloat);
@@ -121,6 +139,13 @@ void Scene::InitBuffers() {
     glGenBuffers(1, &ebo);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, total_indices.size() * sizeof(GLuint), total_indices.data(), GL_STATIC_DRAW);
+    
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, fsize * 8, BUF_OFFSET(0));
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, fsize * 8, BUF_OFFSET(3 * fsize));
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, fsize * 8, BUF_OFFSET(6 * fsize));
+    glEnableVertexAttribArray(0);
+    glEnableVertexAttribArray(1);
+    glEnableVertexAttribArray(2);
 }
 
 void Scene::SetAttribPointers(size_t offset) {
@@ -145,7 +170,8 @@ void Scene::Draw() {
             tex_man->Use(meshes[i]->tx_specular[0], 1, prog_man.GetActiveUniformLocation("mat.specular"));
         }
         
-        SetAttribPointers(meshes[i]->buf_offset);
+        glUniformMatrix4fv(prog_man.GetActiveUniformLocation("model"), 1, GL_FALSE, &meshes[i]->transform_mat.a1);
+        
         GLuint start = meshes[i]->indices_offset;
         GLsizei count = meshes[i]->num_indices;
         GLuint end = start + count;
