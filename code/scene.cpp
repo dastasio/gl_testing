@@ -94,6 +94,7 @@ void Scene::ProcessMesh(aiMesh *mesh, const aiScene *scene, aiMatrix4x4 transfor
         aiString filename;
         mat->GetTexture(aiTextureType_DIFFUSE, i, &filename);
         std::string t_path(directory);
+        t_path += filename.data[0] == '/' ? "" : "/";
         t_path += filename.C_Str();
         tex_man->Add(t_path.c_str(), t_path);
         diffList.push_back(t_path);
@@ -102,6 +103,7 @@ void Scene::ProcessMesh(aiMesh *mesh, const aiScene *scene, aiMatrix4x4 transfor
         aiString filename;
         mat->GetTexture(aiTextureType_SPECULAR, i, &filename);
         std::string t_path(directory);
+        t_path += filename.data[0] == '/' ? "" : "/";
         t_path += filename.C_Str();
         tex_man->Add(t_path.c_str(), t_path);
         specList.push_back(t_path);
@@ -121,14 +123,16 @@ void Scene::InitBuffers() {
     /* gathering data */
     for (GLuint i = 0; i < meshes.size(); ++i) {
         static GLuint num_vertices_so_far = 0;
-        meshes[i]->indices_offset = total_indices.size();
+
         total_vertices.insert(total_vertices.end(), meshes[i]->vertices.begin(), meshes[i]->vertices.end());
+        meshes[i]->indices_offset = total_indices.size();
         for (auto &index : meshes[i]->indices) {
             total_indices.push_back(index + num_vertices_so_far);
         }
-        total_indices.insert(total_indices.end(), meshes[i]->indices.begin(), meshes[i]->indices.end());
-        num_vertices_so_far = total_vertices.size();
+        num_vertices_so_far = total_vertices.size() / 8;
+        meshes[i]->FreeDataForBuffers();
     }
+    this->total_num_indices = total_indices.size();
     
     size_t fsize = sizeof(GLfloat);
     GLuint ebo;
@@ -148,16 +152,6 @@ void Scene::InitBuffers() {
     glEnableVertexAttribArray(2);
 }
 
-void Scene::SetAttribPointers(size_t offset) {
-    size_t fsize = sizeof(GLfloat);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, fsize * 8, BUF_OFFSET(offset));
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, fsize * 8, BUF_OFFSET(offset + 3 * fsize));
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, fsize * 8, BUF_OFFSET(offset + 6 * fsize));
-    glEnableVertexAttribArray(0);
-    glEnableVertexAttribArray(1);
-    glEnableVertexAttribArray(2);
-}
-
 void Scene::Draw() {
     ProgramMan &prog_man = ProgramMan::instance();
     
@@ -170,12 +164,11 @@ void Scene::Draw() {
             tex_man->Use(meshes[i]->tx_specular[0], 1, prog_man.GetActiveUniformLocation("mat.specular"));
         }
         
-        glUniformMatrix4fv(prog_man.GetActiveUniformLocation("model"), 1, GL_FALSE, &meshes[i]->transform_mat.a1);
+        glUniformMatrix4fv(prog_man.GetActiveUniformLocation("model"), 1, GL_TRUE, &meshes[i]->transform_mat.a1);
         
-        GLuint start = meshes[i]->indices_offset;
+        GLuint offset = meshes[i]->indices_offset;
         GLsizei count = meshes[i]->num_indices;
-        GLuint end = start + count;
-        glDrawRangeElements(GL_TRIANGLES, start, end, count, GL_UNSIGNED_INT, 0);
+        glDrawElements(GL_TRIANGLES, count, GL_UNSIGNED_INT, BUF_OFFSET(offset * sizeof(GLuint)));
     }
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 }

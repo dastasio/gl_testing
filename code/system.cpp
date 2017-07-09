@@ -29,8 +29,8 @@ void tsys::Init() {
 void tsys::Loop() {
     Window& win = Window::instance("");
     LightMan* lman = new LightMan();
-    lman->NewLight(vec3(2.0, 1.3, -3.0), vec3(0.8, 0.75, 0.1));
-    lman->NewLight(vec3(0.0, 1.0, 0.0), vec3(0.7, 1.0, 1.0));
+    lman->NewLight(glm::vec3(0.0, 10.0, 5.0), glm::vec3(1.0));
+    lman->NewLight(glm::vec3(0.0, 20.0, 5.0), glm::vec3(1.0));
     
     SDL_SetRelativeMouseMode(SDL_TRUE);
     
@@ -60,7 +60,7 @@ void tsys::Loop() {
 void tsys::InitBuffers() {
     vaoman.NewVAO(10);
     {
-        sc = new Scene("assets/test_2.dae");
+        sc = new Scene("assets/nanosuit/nanosuit.obj");
     }
     vaoman.Unbind();
 }
@@ -78,6 +78,12 @@ bool tsys::input() {
     
     if (state[SDL_SCANCODE_ESCAPE]) {
         return false;
+    }
+    if (state[SDL_SCANCODE_RCTRL]) {
+        movement_speed = 0.005;
+    }
+    else {
+        movement_speed = 0.07;
     }
     if (state[SDL_SCANCODE_D]) {
         cam_man->MoveCamera(MOVE_RIGHT, movement_speed);
