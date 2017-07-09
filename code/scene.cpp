@@ -11,7 +11,7 @@ TextureMan* tex_man = new TextureMan();
 
 Scene::Scene(const char* path) {
     Assimp::Importer importer;
-    const aiScene *scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_GenNormals | aiProcess_JoinIdenticalVertices);
+    const aiScene *scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_GenNormals | aiProcess_JoinIdenticalVertices | aiProcess_FlipUVs);
     
     if(!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
         std::cerr << "[ERROR] Assimp: " << importer.GetErrorString() << std::endl;
@@ -70,10 +70,14 @@ void Scene::ProcessMesh(aiMesh *mesh, const aiScene *scene, aiMatrix4x4 transfor
         
         /* texture coordinates */
         {
-            GLfloat tc_x = (mesh->mTextureCoords[0]) ? mesh->mTextureCoords[0][i].x : 0.0;
-            GLfloat tc_y = (mesh->mTextureCoords[0]) ? mesh->mTextureCoords[0][i].y : 0.0;
-            v_data.push_back(tc_x);
-            v_data.push_back(tc_y);
+            if (mesh->mTextureCoords[0]) {
+                v_data.push_back(mesh->mTextureCoords[0][i].x);
+                v_data.push_back(mesh->mTextureCoords[0][i].y);
+            }
+            else {
+                v_data.push_back(0.0);
+                v_data.push_back(0.0);
+            }
         }
     }
     
