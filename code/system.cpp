@@ -39,6 +39,8 @@ void tsys::Loop() {
     while (input()) {
         vaoman.BindVAO(10);
         glEnable(GL_DEPTH_TEST);
+        glEnable(GL_CULL_FACE);
+        glDepthFunc(GL_LEQUAL);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         
         p.SetActive("main");
@@ -60,7 +62,7 @@ void tsys::Loop() {
 void tsys::InitBuffers() {
     vaoman.NewVAO(10);
     {
-        sc = new Scene("assets/nanosuit/nanosuit.obj");
+        sc = new Scene("assets/scene_3.fbx");
     }
     vaoman.Unbind();
 }
