@@ -10,8 +10,8 @@ out vec3 fragpos;
 out vec3 normal;
 
 void main() {
-	txc = vec2(tcoord.xy);
-	normal = normalize(Normal);
+	txc = tcoord;
+	normal = normalize(mat3(transpose(inverse(model))) * Normal);
 	fragpos = vec3(model * vec4(vpos, 1.0));
 	gl_Position = camera * model * vec4(vpos,1.0);
 }

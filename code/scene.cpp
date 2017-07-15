@@ -113,11 +113,13 @@ void Scene::ProcessMesh(aiMesh *mesh, const aiScene *scene, aiMatrix4x4 transfor
         specList.push_back(t_path);
     }
     
-    
     this->meshes.push_back(new Mesh(v_data, v_indices));
-    this->meshes[meshes.size() - 1]->tx_diffuse = diffList;
-    this->meshes[meshes.size() - 1]->tx_specular = specList;
-    this->meshes[meshes.size() - 1]->transform_mat = transform;
+    auto addedMesh = this->meshes[meshes.size() - 1];
+    addedMesh->tx_diffuse = diffList;
+    addedMesh->tx_specular = specList;
+    addedMesh->transform_mat = transform;
+    GLfloat *shininessPointer = &addedMesh->matShineFactor;
+    *shininessPointer = 32;
 }
 
 
@@ -167,6 +169,7 @@ void Scene::Draw() {
         if (meshes[i]->tx_specular.size() > 0) {
             tex_man->Use(meshes[i]->tx_specular[0], 1, prog_man.GetActiveUniformLocation("mat.specular"));
         }
+        glUniform1f(prog_man.GetActiveUniformLocation("mat.shineFactor"), meshes[i]->matShineFactor);
         
         glUniformMatrix4fv(prog_man.GetActiveUniformLocation("model"), 1, GL_TRUE, &meshes[i]->transform_mat.a1);
         

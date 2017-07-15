@@ -7,9 +7,9 @@
 vec3 calcLight(int n);
 
 struct Material {
-	vec3 color;
 	sampler2D diffuse;
 	sampler2D specular;
+	float shineFactor;
 };
 
 in vec2 txc;
@@ -51,12 +51,12 @@ vec3 calcLight(int n) {
 	vec3 final_ambient = L_AMB(n) * vec3(texture(mat.diffuse, txc));
 
 	/* diffuse lighting */
-	float diff_intensity = max(dot(LightDir, normal), 0.0);
+	float diff_intensity = max(dot(normal, LightDir), 0.0);
 	vec3 final_diffuse = L_DIFF(n) * diff_intensity * vec3(texture(mat.diffuse, txc));
 
 	/* specular lighting */
 	vec3 ReflectedLight = reflect(-LightDir, normal);
-	float spec_intensity = pow(max(dot(ViewDir, ReflectedLight), 0.0), 32);
+	float spec_intensity = pow(max(dot(ViewDir, ReflectedLight), 0.0), mat.shineFactor);
 	vec3 final_specular = L_SPEC(n) * spec_intensity * vec3(texture(mat.specular, txc));
 
 	return final_ambient + final_diffuse + final_specular;

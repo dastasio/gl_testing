@@ -10,6 +10,7 @@ struct Mesh {
     std::vector<GLuint> indices;
     std::vector<std::string> tx_diffuse;
     std::vector<std::string> tx_specular;
+    GLfloat matShineFactor;
     GLuint num_indices;
     GLuint indices_offset;
     aiMatrix4x4 transform_mat;

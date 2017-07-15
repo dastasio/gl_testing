@@ -29,8 +29,7 @@ void tsys::Init() {
 void tsys::Loop() {
     Window& win = Window::instance("");
     LightMan* lman = new LightMan();
-    lman->NewLight(glm::vec3(0.0, 10.0, 5.0), glm::vec3(1.0));
-    lman->NewLight(glm::vec3(0.0, 20.0, 5.0), glm::vec3(1.0));
+    lman->NewLight(glm::vec3(0.0, 1.0, 0.0), glm::vec3(1.0));
     
     SDL_SetRelativeMouseMode(SDL_TRUE);
     
@@ -40,7 +39,7 @@ void tsys::Loop() {
         vaoman.BindVAO(10);
         glEnable(GL_DEPTH_TEST);
         glEnable(GL_CULL_FACE);
-        glDepthFunc(GL_LEQUAL);
+        glDepthFunc(GL_ALWAYS);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         
         p.SetActive("main");
