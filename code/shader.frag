@@ -33,13 +33,13 @@ uniform int N_LIGHTS;
 uniform vec3 eye;
 uniform Material mat;
 
-void main() {
-	vec3 Lintensity = calcLight(0);
-	for (int i = 0; i < N_LIGHTS; i++) {
-		Lintensity += calcLight(i);
-	}
+float MakeLinear(float depth) {
+	float z = depth * 2.0 - 1.0;
+	return (2.0 * 0.1 * 100.0) / (100 + 0.1 - z * (100.0 - 0.1));
+}
 
-	color = vec4(Lintensity, 1.0);
+void main() {
+	color = vec4(vec3(MakeLinear(gl_FragCoord.z) / 100.0), 1.0);
 }
 
 vec3 calcLight(int n) {

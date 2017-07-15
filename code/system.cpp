@@ -39,7 +39,7 @@ void tsys::Loop() {
         vaoman.BindVAO(10);
         glEnable(GL_DEPTH_TEST);
         glEnable(GL_CULL_FACE);
-        glDepthFunc(GL_ALWAYS);
+        glDepthFunc(GL_LESS);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         
         p.SetActive("main");
