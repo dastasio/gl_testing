@@ -57,9 +57,11 @@ void TextureMan::Add(const char *path, std::string name) {
     
     /* adding texture to map */
     auto success =this->textures.insert(std::pair<std::string, GLuint>(name, glTexture));
+#ifdef SHOW_WARNINGS
     if (!success.second) {
         std::cout << "[WARNING] A texture named '" << name << "' already exists!" << std::endl;
     }
+#endif
 }
 
 

@@ -3,6 +3,7 @@
 #include "program_manager.hpp"
 #include <assimp/Importer.hpp>
 #include <assimp/postprocess.h>
+#include <glm/gtc/matrix_transform.hpp>
 #include <string>
 #include <iostream>
 #define BUF_OFFSET(x) (GLvoid*)(x)
@@ -127,9 +128,8 @@ void Scene::InitBuffers() {
     std::vector<GLfloat> total_vertices;
     std::vector<GLuint> total_indices;
     /* gathering data */
+    GLuint num_vertices_so_far = 0;
     for (GLuint i = 0; i < meshes.size(); ++i) {
-        static GLuint num_vertices_so_far = 0;
-
         total_vertices.insert(total_vertices.end(), meshes[i]->vertices.begin(), meshes[i]->vertices.end());
         meshes[i]->indices_offset = total_indices.size();
         for (auto &index : meshes[i]->indices) {
@@ -141,7 +141,6 @@ void Scene::InitBuffers() {
     this->total_num_indices = total_indices.size();
     
     size_t fsize = sizeof(GLfloat);
-    GLuint ebo;
     glGenBuffers(1, &vbo);
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
     glBufferData(GL_ARRAY_BUFFER, total_vertices.size() * fsize, total_vertices.data(), GL_STATIC_DRAW);
@@ -150,6 +149,14 @@ void Scene::InitBuffers() {
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, total_indices.size() * sizeof(GLuint), total_indices.data(), GL_STATIC_DRAW);
     
+    this->SetPointers();
+}
+
+void Scene::SetPointers() {
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+    
+    size_t fsize = sizeof(GLfloat);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, fsize * 8, BUF_OFFSET(0));
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, fsize * 8, BUF_OFFSET(3 * fsize));
     glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, fsize * 8, BUF_OFFSET(6 * fsize));
@@ -158,20 +165,24 @@ void Scene::InitBuffers() {
     glEnableVertexAttribArray(2);
 }
 
-void Scene::Draw() {
+void Scene::Draw(GLboolean tex, glm::vec3 scale) {
     ProgramMan &prog_man = ProgramMan::instance();
+    this->SetPointers();
     
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
     for (int i = 0; i < meshes.size(); ++i) {
-        if (meshes[i]->tx_diffuse.size() > 0) {
-            tex_man->Use(meshes[i]->tx_diffuse[0], 0, prog_man.GetActiveUniformLocation("mat.diffuse"));
+        if (tex) {
+            if (meshes[i]->tx_diffuse.size() > 0) {
+                tex_man->Use(meshes[i]->tx_diffuse[0], 0, prog_man.GetActiveUniformLocation("mat.diffuse"));
+            }
+            if (meshes[i]->tx_specular.size() > 0) {
+                tex_man->Use(meshes[i]->tx_specular[0], 1, prog_man.GetActiveUniformLocation("mat.specular"));
+            }
+            glUniform1f(prog_man.GetActiveUniformLocation("mat.shineFactor"), meshes[i]->matShineFactor);
         }
-        if (meshes[i]->tx_specular.size() > 0) {
-            tex_man->Use(meshes[i]->tx_specular[0], 1, prog_man.GetActiveUniformLocation("mat.specular"));
-        }
-        glUniform1f(prog_man.GetActiveUniformLocation("mat.shineFactor"), meshes[i]->matShineFactor);
-        
-        glUniformMatrix4fv(prog_man.GetActiveUniformLocation("model"), 1, GL_TRUE, &meshes[i]->transform_mat.a1);
+        glm::mat4 model = TO_GLM_MATRIX(meshes[i]->transform_mat);
+        model = glm::scale(glm::mat4(1.0), scale) * model;
+        glUniformMatrix4fv(prog_man.GetActiveUniformLocation("model"), 1, GL_TRUE, &model[0][0]);
         
         GLuint offset = meshes[i]->indices_offset;
         GLsizei count = meshes[i]->num_indices;

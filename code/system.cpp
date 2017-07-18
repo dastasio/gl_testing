@@ -12,6 +12,7 @@ void tsys::Init() {
     /* creating window nad context initialization*/
     Window &win = Window::instance("test1", 4, 1, WIDTH, HEIGHT);
     /* initializing OpenGL program */
+    p.NewProgram("outliner", "assets/shader.vert", "assets/outliner.frag");
     p.NewProgram("main", "assets/shader.vert", "assets/shader.frag");
     /* initializing camera manager */
     cam_man = new CameraMan();
@@ -38,16 +39,38 @@ void tsys::Loop() {
     while (input()) {
         vaoman.BindVAO(10);
         glEnable(GL_DEPTH_TEST);
-        glEnable(GL_CULL_FACE);
-        glDepthFunc(GL_LESS);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+//        glEnable(GL_CULL_FACE);
+        glEnable(GL_STENCIL_TEST);
+        
+        glStencilOp(GL_KEEP, GL_REPLACE, GL_REPLACE);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
         
         p.SetActive("main");
         lman->CalculateLighting();
         cam_man->SendUniformMatrix();
         cam_man->SendEyePosition();
-        sc->Draw();
+
+        /* drawing floor, without updating stencil buffer */
+        glStencilMask(0x00);
+        sc1->Draw(GL_TRUE, glm::vec3(1.0));
         
+        /* drawing containers, updating stencil buffer */
+        glStencilFunc(GL_ALWAYS, 1, 0xFF);
+        glStencilMask(0xFF);
+        sc2->Draw(GL_TRUE, glm::vec3(1.0));
+        
+        /* drawing outline */
+        glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
+        glStencilMask(0x00);
+        glDisable(GL_DEPTH_TEST);
+        p.SetActive("outliner");
+        cam_man->SendUniformMatrix();
+        sc2->Draw(GL_FALSE, glm::vec3(1.07));
+        glStencilMask(0xFF);
+        glEnable(GL_DEPTH_TEST);
+
+        glStencilFunc(GL_ALWAYS, 1, 0xFF);
+        glStencilOp(GL_REPLACE, GL_KEEP, GL_REPLACE);
         p.SetActive("lights");
         cam_man->SendUniformMatrix();
         lman->RenderLights();
@@ -61,7 +84,8 @@ void tsys::Loop() {
 void tsys::InitBuffers() {
     vaoman.NewVAO(10);
     {
-        sc = new Scene("assets/scene_3.fbx");
+        sc2 = new Scene("assets/cubes.fbx");
+        sc1 = new Scene("assets/floor.fbx");
     }
     vaoman.Unbind();
 }

@@ -4,11 +4,12 @@
 #include "vao_manager.hpp"
 #include "texture.hpp"
 #include "scene.hpp"
+//#define SHOW_WARNINGS
 
 namespace tsys {
     ProgramMan &p = ProgramMan::instance();
     VAOMan &vaoman = VAOMan::instance();
-    Scene *sc;
+    Scene *sc1, *sc2;
     
     CameraMan *cam_man;
     

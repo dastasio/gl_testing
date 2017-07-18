@@ -104,8 +104,10 @@ GLuint Shader::compile(GLenum type) {
  */
 GLint Program::getUniformLocation(const GLchar *name) {
     GLint loc = glGetUniformLocation(this->program, name);
+#ifndef SHOW_WARNINGS
     if (loc == -1)
         std::cout << "[ERROR] Requested location of inexisting variable '" << name << "'" << std::endl;
+#endif
     return loc;
 }
 
