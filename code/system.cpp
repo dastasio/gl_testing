@@ -12,8 +12,8 @@ void tsys::Init() {
     /* creating window nad context initialization*/
     Window &win = Window::instance("test1", 4, 1, WIDTH, HEIGHT);
     /* initializing OpenGL program */
-    p.NewProgram("outliner", "assets/shader.vert", "assets/outliner.frag");
     p.NewProgram("main", "assets/shader.vert", "assets/shader.frag");
+    p.NewProgram("fbo", "assets/fbo.vert", "assets/fbo.frag");
     /* initializing camera manager */
     cam_man = new CameraMan();
     
@@ -24,6 +24,9 @@ void tsys::Init() {
     
     cam_man->Add("main", vec3(0.0, 0.0, -3.0));
     cam_man->SetActive("main");
+    
+    fbo = win.NewFramebuffer();
+    texture = win.InitFramebuffer(fbo);
 }
 
 
@@ -34,43 +37,31 @@ void tsys::Loop() {
     
     SDL_SetRelativeMouseMode(SDL_TRUE);
     
-    glClearColor(0.0, 0.1, 0.15, 1.0);
+    glClearColor(0.05, 0.05, 0.05, 1.0);
     
     while (input()) {
         vaoman.BindVAO(10);
         glEnable(GL_DEPTH_TEST);
-//        glEnable(GL_CULL_FACE);
-        glEnable(GL_STENCIL_TEST);
+        glEnable(GL_BLEND);
         
-        glStencilOp(GL_KEEP, GL_REPLACE, GL_REPLACE);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-        
-        p.SetActive("main");
+        p.SetActive("fbo");
+        glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         lman->CalculateLighting();
         cam_man->SendUniformMatrix();
         cam_man->SendEyePosition();
-
-        /* drawing floor, without updating stencil buffer */
-        glStencilMask(0x00);
-        sc1->Draw(GL_TRUE, glm::vec3(1.0));
+        sc->Draw(GL_TRUE, glm::vec3(1.0));
         
-        /* drawing containers, updating stencil buffer */
-        glStencilFunc(GL_ALWAYS, 1, 0xFF);
-        glStencilMask(0xFF);
-        sc2->Draw(GL_TRUE, glm::vec3(1.0));
-        
-        /* drawing outline */
-        glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
-        glStencilMask(0x00);
         glDisable(GL_DEPTH_TEST);
-        p.SetActive("outliner");
-        cam_man->SendUniformMatrix();
-        sc2->Draw(GL_FALSE, glm::vec3(1.07));
-        glStencilMask(0xFF);
+        p.SetActive("main");
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        glClear(GL_COLOR_BUFFER_BIT);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, texture);
+        glUniform1i(p.GetActiveUniformLocation("tx"), 0);
+        quad->Draw(GL_TRUE, glm::vec3(1.0));
         glEnable(GL_DEPTH_TEST);
 
-        glStencilFunc(GL_ALWAYS, 1, 0xFF);
-        glStencilOp(GL_REPLACE, GL_KEEP, GL_REPLACE);
         p.SetActive("lights");
         cam_man->SendUniformMatrix();
         lman->RenderLights();
@@ -84,8 +75,8 @@ void tsys::Loop() {
 void tsys::InitBuffers() {
     vaoman.NewVAO(10);
     {
-        sc2 = new Scene("assets/cubes.fbx");
-        sc1 = new Scene("assets/floor.fbx");
+        sc = new Scene("assets/scene.fbx");
+        quad = new Scene("assets/quad.fbx");
     }
     vaoman.Unbind();
 }

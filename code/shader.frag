@@ -1,63 +1,41 @@
 #version 400 core
-#define L_POS(x) lights[x * 4]
-#define L_AMB(x) lights[x * 4 + 1]
-#define L_DIFF(x) lights[x * 4 + 2]
-#define L_SPEC(x) lights[x * 4 + 3]
 
-vec3 calcLight(int n);
+in vec2 txcoords;
 
-struct Material {
-	sampler2D diffuse;
-	sampler2D specular;
-	float shineFactor;
-};
-
-in vec2 txc;
-in vec3 normal;
-in vec3 fragpos;
 out vec4 color;
 
-/* vec3 array to describe lights; has structure:
- [0] position,
- [1] ambient color,
- [2] diffuse color,
- [3] specular color,
- [4] position of second light,
- .
- .
- .
- [3n] specular color of last light
- */
-uniform vec3 lights[40];
-uniform int N_LIGHTS;
-uniform vec3 eye;
-uniform Material mat;
+uniform sampler2D tx;
 
+const float offset = 1.0 / 300.0;
+float kernel[9] = float[9](
+	-1, -1, -1,
+    -1,  8, -1,
+    -1, -1, -1
+);
 void main() {
-	vec3 lighting = vec3(0.0);
-	for (int i = 0; i < N_LIGHTS; ++i) {
-		lighting += calcLight(i);
-	}
+	vec2 offsets[9] = vec2[](
+		vec2(-offset,	 offset),
+		vec2( 0.0,		 offset),
+		vec2( offset, 	 offset),
+		vec2(-offset, 	 0.0),
+		vec2( 0.0, 		 0.0),
+		vec2( offset, 	 0.0),
+		vec2(-offset,	-offset),
+		vec2( 0.0,		-offset),
+		vec2( offset,	-offset)
+	);
 
-	color = vec4(lighting, 1.0);
-}
+	vec3 final = vec3(0.0);
+	final += vec3(texture(tx, txcoords.st + offsets[0])) * kernel[0];
+	final += vec3(texture(tx, txcoords.st + offsets[1])) * kernel[1];
+	final += vec3(texture(tx, txcoords.st + offsets[2])) * kernel[2];
+	final += vec3(texture(tx, txcoords.st + offsets[3])) * kernel[3];
+	final += vec3(texture(tx, txcoords.st + offsets[4])) * kernel[4];
+	final += vec3(texture(tx, txcoords.st + offsets[5])) * kernel[5];
+	final += vec3(texture(tx, txcoords.st + offsets[6])) * kernel[6];
+	final += vec3(texture(tx, txcoords.st + offsets[7])) * kernel[7];
+	final += vec3(texture(tx, txcoords.st + offsets[8])) * kernel[8];
 
-vec3 calcLight(int n) {
-	vec3 LightPosition = L_POS(n);
-	vec3 LightDir = normalize(LightPosition - fragpos);
-	vec3 ViewDir = normalize(eye - fragpos);
 
-	/* ambient lighting */
-	vec3 final_ambient = L_AMB(n) * vec3(texture(mat.diffuse, txc));
-
-	/* diffuse lighting */
-	float diff_intensity = max(dot(normal, LightDir), 0.0);
-	vec3 final_diffuse = L_DIFF(n) * diff_intensity * vec3(texture(mat.diffuse, txc));
-
-	/* specular lighting */
-	vec3 ReflectedLight = reflect(-LightDir, normal);
-	float spec_intensity = pow(max(dot(ViewDir, ReflectedLight), 0.0), mat.shineFactor);
-	vec3 final_specular = L_SPEC(n) * spec_intensity * vec3(texture(mat.specular, txc));
-
-	return final_ambient + final_diffuse + final_specular;
+	color = vec4(final, 1.0);
 }

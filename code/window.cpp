@@ -60,6 +60,8 @@ Window::Window(const char* t, int x, int y, int w, int h, int maj, int min) {
         SDL_GL_MakeCurrent(this->window, this->context);
         
         glViewport(0, 0, w, h);
+        this->width = w;
+        this->height = h;
     }
 }
 
@@ -77,8 +79,40 @@ void Window::Swap() {
 
 
 
+GLuint Window::NewFramebuffer() {
+    GLuint fbo;
+    glGenFramebuffers(1, &fbo);
+    return fbo;
+}
 
 
+GLuint Window::InitFramebuffer(GLuint fbo) {
+    glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+    /* allocating memory for color */
+    GLuint color;
+    glGenTextures(1, &color);
+    glBindTexture(GL_TEXTURE_2D, color);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glBindTexture(GL_TEXTURE_2D, 0);
+    /* attaching color memory to framebuffer */
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, color, 0);
+    
+    /* allocating memory for depth and stencil*/
+    GLuint rbo;
+    glGenRenderbuffers(1, &rbo);
+    glBindRenderbuffer(GL_RENDERBUFFER, rbo);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width, height);
+    glBindRenderbuffer(GL_RENDERBUFFER, 0);
+    /* attaching depth/stencil memory to framebuffer */
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo);
+    
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+        std::cerr << "[ERROR] Framebuffer is not complete!" << std::endl;
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    return color;
+}
 
 
 

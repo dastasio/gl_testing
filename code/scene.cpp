@@ -178,7 +178,6 @@ void Scene::Draw(GLboolean tex, glm::vec3 scale) {
             if (meshes[i]->tx_specular.size() > 0) {
                 tex_man->Use(meshes[i]->tx_specular[0], 1, prog_man.GetActiveUniformLocation("mat.specular"));
             }
-            glUniform1f(prog_man.GetActiveUniformLocation("mat.shineFactor"), meshes[i]->matShineFactor);
         }
         glm::mat4 model = TO_GLM_MATRIX(meshes[i]->transform_mat);
         model = glm::scale(glm::mat4(1.0), scale) * model;
