@@ -11,9 +11,13 @@ public:
     ~TextureMan();
     
     Texture ReadTexture(const char* path);
-    void Add(const char* path, std::string name);
+    void AddTexture(const char* path, std::string name);
+    void AddCubemap(std::string pdir);
     
     void Use(std::string name, GLint index, GLint location);
+    void ActiveCubemap(GLint location, GLint index);
+    
 private:
     std::map<std::string, GLuint> textures;
+    GLuint cubemap;
 };

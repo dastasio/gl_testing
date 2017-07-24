@@ -9,24 +9,38 @@
 
 using namespace glm;
 void tsys::Init() {
+    GL_NO_ERROR;
+    GLenum error;
     /* creating window nad context initialization*/
     Window &win = Window::instance("test1", 4, 1, WIDTH, HEIGHT);
+    error = glGetError();
     /* initializing OpenGL program */
     p.NewProgram("main", "assets/shader.vert", "assets/shader.frag");
+    error = glGetError();
+    p.NewProgram("skybox", "assets/cubemap.vert", "assets/cubemap.frag");
+    error = glGetError();
     p.NewProgram("fbo", "assets/fbo.vert", "assets/fbo.frag");
+    error = glGetError();
     /* initializing camera manager */
     cam_man = new CameraMan();
+    error = glGetError();
     
     /* printing opengl version */
     win.printStats();
+    error = glGetError();
     
     InitBuffers();
+    error = glGetError();
     
     cam_man->Add("main", vec3(0.0, 0.0, -3.0));
+    error = glGetError();
     cam_man->SetActive("main");
+    error = glGetError();
     
     fbo = win.NewFramebuffer();
+    error = glGetError();
     texture = win.InitFramebuffer(fbo);
+    error = glGetError();
 }
 
 
@@ -44,9 +58,16 @@ void tsys::Loop() {
         glEnable(GL_DEPTH_TEST);
         glEnable(GL_BLEND);
         
-        p.SetActive("fbo");
         glBindFramebuffer(GL_FRAMEBUFFER, fbo);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        
+        p.SetActive("skybox");
+        glDepthMask(GL_FALSE);
+        cam_man->SendUniformMatrix();
+        skybox->RenderSkybox(p.GetActiveUniformLocation("skybox"));
+        glDepthMask(GL_TRUE);
+        
+        p.SetActive("fbo");
         lman->CalculateLighting();
         cam_man->SendUniformMatrix();
         cam_man->SendEyePosition();
@@ -77,6 +98,7 @@ void tsys::InitBuffers() {
     {
         sc = new Scene("assets/scene.fbx");
         quad = new Scene("assets/quad.fbx");
+        skybox = new Scene("assets/skybox.fbx");
     }
     vaoman.Unbind();
 }

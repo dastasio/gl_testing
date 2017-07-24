@@ -37,7 +37,7 @@ Texture TextureMan::ReadTexture(const char *path) {
 }
 
 
-void TextureMan::Add(const char *path, std::string name) {
+void TextureMan::AddTexture(const char *path, std::string name) {
     Texture tx = ReadTexture(path);
     
     /* texture generation */
@@ -45,8 +45,8 @@ void TextureMan::Add(const char *path, std::string name) {
     glGenTextures(1, &glTexture);
     glBindTexture(GL_TEXTURE_2D, glTexture);
     
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
     
@@ -64,6 +64,32 @@ void TextureMan::Add(const char *path, std::string name) {
 #endif
 }
 
+void TextureMan::AddCubemap(std::string pdir) {
+    std::string facePaths[6] = {
+        "/right.jpg", "/left.jpg",
+        "/top.jpg", "/bottom.jpg",
+        "/back.jpg", "/front.jpg"
+    };
+    glGenTextures(1, &this->cubemap);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, this->cubemap);
+    
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_BASE_LEVEL, 0);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAX_LEVEL, 0);
+    
+    /* reading all textures and sending their data to the gpu*/
+    for (int i = 0; i < 6; i++) {
+        Texture face = ReadTexture((pdir + facePaths[i]).c_str());
+        glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGBA8, face.w, face.h, 0, face.format,
+                     GL_UNSIGNED_BYTE, face.pixels);
+    }
+    glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+}
+
 
 void TextureMan::Use(std::string name, GLint index, GLint location) {
     auto txIterator = this->textures.find(name);
@@ -77,3 +103,13 @@ void TextureMan::Use(std::string name, GLint index, GLint location) {
         glUniform1i(location, index);
     }
 }
+
+
+void TextureMan::ActiveCubemap(GLint location, GLint index) {
+    glActiveTexture(GL_TEXTURE0 + index);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, cubemap);
+    
+    glUniform1i(location, index);
+}
+
+

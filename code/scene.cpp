@@ -101,7 +101,7 @@ void Scene::ProcessMesh(aiMesh *mesh, const aiScene *scene, aiMatrix4x4 transfor
         std::string t_path(directory);
         t_path += filename.data[0] == '/' ? "" : "/";
         t_path += filename.C_Str();
-        tex_man->Add(t_path.c_str(), t_path);
+        tex_man->AddTexture(t_path.c_str(), t_path);
         diffList.push_back(t_path);
     }
     for (int i = 0; i < mat->GetTextureCount(aiTextureType_SPECULAR); ++i) {
@@ -110,7 +110,7 @@ void Scene::ProcessMesh(aiMesh *mesh, const aiScene *scene, aiMatrix4x4 transfor
         std::string t_path(directory);
         t_path += filename.data[0] == '/' ? "" : "/";
         t_path += filename.C_Str();
-        tex_man->Add(t_path.c_str(), t_path);
+        tex_man->AddTexture(t_path.c_str(), t_path);
         specList.push_back(t_path);
     }
     
@@ -163,13 +163,13 @@ void Scene::SetPointers() {
     glEnableVertexAttribArray(0);
     glEnableVertexAttribArray(1);
     glEnableVertexAttribArray(2);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
 void Scene::Draw(GLboolean tex, glm::vec3 scale) {
     ProgramMan &prog_man = ProgramMan::instance();
     this->SetPointers();
     
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
     for (int i = 0; i < meshes.size(); ++i) {
         if (tex) {
             if (meshes[i]->tx_diffuse.size() > 0) {
@@ -187,6 +187,21 @@ void Scene::Draw(GLboolean tex, glm::vec3 scale) {
         GLsizei count = meshes[i]->num_indices;
         glDrawElements(GL_TRIANGLES, count, GL_UNSIGNED_INT, BUF_OFFSET(offset * sizeof(GLuint)));
     }
+}
+
+
+void Scene::RenderSkybox(GLint location, GLint index) {
+    static bool hasBeenRead = false;
+    if(!hasBeenRead) {
+        tex_man->AddCubemap("assets/skybox");
+        hasBeenRead = true;
+    }
+    
+    tex_man->ActiveCubemap(location, index);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(GLfloat) * 8, BUF_OFFSET(0));
+    glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 

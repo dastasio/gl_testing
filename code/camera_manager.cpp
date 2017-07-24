@@ -134,8 +134,10 @@ void CameraMan::RotateCamera(RotEnum dir, double angle) {
  */
 void CameraMan::SendUniformMatrix() {
     static ProgramMan &pman = ProgramMan::instance();
-    glm::mat4 matrix = active_cam->getMatrix();
-    glUniformMatrix4fv(pman.GetActiveUniformLocation("camera"), 1, GL_FALSE, glm::value_ptr(matrix));
+    glm::mat4 view = active_cam->getCamSpace();
+    glm::mat4 proj = active_cam->getProjection();
+    glUniformMatrix4fv(pman.GetActiveUniformLocation("view"), 1, GL_FALSE, glm::value_ptr(view));
+    glUniformMatrix4fv(pman.GetActiveUniformLocation("projection"), 1, GL_FALSE, glm::value_ptr(proj));
 }
 
 

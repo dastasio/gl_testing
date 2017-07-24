@@ -9,7 +9,8 @@ public:
     Camera(glm::vec3 p, glm::vec3 target, glm::vec3 up);
     ~Camera();
     
-    glm::mat4 getMatrix();
+    glm::mat4 getCamSpace();
+    glm::mat4 getProjection();
     glm::vec3 getPosition();
     
     /* movement functions */

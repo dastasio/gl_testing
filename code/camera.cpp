@@ -33,12 +33,20 @@ Camera::~Camera() {
 }
 
 
-/* Getter: Matrix
+/* Getter: Camera space converter matrix
  * --------------------------------------------------
  * returns: matrix that includes camera space and perspective transform
  */
-mat4 Camera::getMatrix() {
-    return (perspective(45.f, AR, 0.01f, 100.f) * this->matrix);
+mat4 Camera::getCamSpace() {
+    return this->matrix;
+}
+
+/* Getter: Projection Matrix
+ * --------------------------------------------------
+ * returns: matrix that includes camera space and perspective transform
+ */
+mat4 Camera::getProjection() {
+    return perspective(45.f, AR, 0.01f, 100.f);
 }
 
 /* Getter: Position

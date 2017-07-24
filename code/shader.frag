@@ -6,14 +6,14 @@ out vec4 color;
 
 uniform sampler2D tx;
 
-const float offset = 1.0 / 300.0;
+/*const float offset = 1.0 / 300.0;
 float kernel[9] = float[9](
 	-1, -1, -1,
     -1,  8, -1,
     -1, -1, -1
-);
+);*/
 void main() {
-	vec2 offsets[9] = vec2[](
+	/*vec2 offsets[9] = vec2[](
 		vec2(-offset,	 offset),
 		vec2( 0.0,		 offset),
 		vec2( offset, 	 offset),
@@ -34,8 +34,7 @@ void main() {
 	final += vec3(texture(tx, txcoords.st + offsets[5])) * kernel[5];
 	final += vec3(texture(tx, txcoords.st + offsets[6])) * kernel[6];
 	final += vec3(texture(tx, txcoords.st + offsets[7])) * kernel[7];
-	final += vec3(texture(tx, txcoords.st + offsets[8])) * kernel[8];
+	final += vec3(texture(tx, txcoords.st + offsets[8])) * kernel[8];*/
 
-
-	color = vec4(final, 1.0);
+	color = texture(tx, txcoords);
 }
