@@ -9,6 +9,7 @@ public:
     
     void Draw(GLboolean tex, glm::vec3 scale);
     void RenderSkybox(GLint location, GLint index = 0);
+    void ActiveCubemap(GLint location, GLint index = 0);
 private:
     std::vector<Mesh*> meshes;
     const char* directory;

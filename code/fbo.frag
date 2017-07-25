@@ -32,14 +32,15 @@ uniform vec3 lights[40];
 uniform int N_LIGHTS;
 uniform vec3 eye;
 uniform Material mat;
+uniform samplerCube skybox;
 
 void main() {
-	vec3 lighting = vec3(0.0);
-	for (int i = 0; i < N_LIGHTS; ++i) {
-		lighting += calcLight(i);
-	}
+	vec3 I = normalize(fragpos - eye);
+	vec3 R = reflect(I, normalize(normal));
 
-	color = texture(mat.diffuse, txc);
+	vec3 final = vec3(0.0);
+	final += texture(skybox, R).rgb;
+	color = vec4(final, 1.0);
 }
 
 vec3 calcLight(int n) {

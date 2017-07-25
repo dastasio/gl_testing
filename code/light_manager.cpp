@@ -40,7 +40,8 @@ void LightMan::CalculateLighting() {
 void LightMan::RenderLights() {
     ProgramMan &pman = ProgramMan::instance();
     VAOMan &vman = VAOMan::instance();
-    pman.SetActive("lights");
+    GLint prevVAO;
+    glGetIntegerv(GL_VERTEX_ARRAY_BINDING, &prevVAO);
     vman.BindVAO(light_vao_index);
     
     GLint UniformModelMatrixLocation = pman.GetActiveUniformLocation("model");
@@ -54,7 +55,8 @@ void LightMan::RenderLights() {
         glUniform3f(UniformColorLocation, color.r, color.g, color.b);
         glDrawElements(GL_TRIANGLES, 144, GL_UNSIGNED_INT, 0);
     }
-    vman.Unbind();
+    /* restoring previous state */
+    glBindVertexArray(prevVAO);
 }
 
 

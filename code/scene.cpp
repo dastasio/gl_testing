@@ -191,12 +191,6 @@ void Scene::Draw(GLboolean tex, glm::vec3 scale) {
 
 
 void Scene::RenderSkybox(GLint location, GLint index) {
-    static bool hasBeenRead = false;
-    if(!hasBeenRead) {
-        tex_man->AddCubemap("assets/skybox");
-        hasBeenRead = true;
-    }
-    
     tex_man->ActiveCubemap(location, index);
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
@@ -205,3 +199,13 @@ void Scene::RenderSkybox(GLint location, GLint index) {
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
+
+void Scene::ActiveCubemap(GLint location, GLint index) {
+    static bool hasBeenRead = false;
+    if(!hasBeenRead) {
+        tex_man->AddCubemap("assets/skybox");
+        hasBeenRead = true;
+    }
+    
+    tex_man->ActiveCubemap(location, index);
+}
