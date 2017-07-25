@@ -36,11 +36,10 @@ uniform samplerCube skybox;
 
 void main() {
 	vec3 I = normalize(fragpos - eye);
-	vec3 R = reflect(I, normalize(normal));
+	vec3 R = refract(I, normalize(normal), 0.658);
 
 	vec3 final = vec3(0.0);
-	final += texture(skybox, R).rgb;
-	color = vec4(final, 1.0);
+	color = vec4(texture(skybox, R).rgb, 1.0);
 }
 
 vec3 calcLight(int n) {
