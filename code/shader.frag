@@ -1,8 +1,14 @@
 #version 400 core
-in vec3 geom_col;
+in vec2 tx_coords;
 
 out vec4 color;
 
+struct Material {
+	sampler2D diffuse;
+};
+
+uniform Material mat;
+
 void main() {
-	color = vec4(geom_col, 1.0);
+	color = texture(mat.diffuse, tx_coords);
 }

@@ -42,11 +42,11 @@ void tsys::Loop() {
         
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         
-        glDrawArrays(GL_POINTS, 0, 4);
-        
+        cam_man->SendUniformMatrix();
+        glUniform1d(p.GetActiveUniformLocation("anim_time"), glm::sin(GLdouble(SDL_GetTicks() / 1000.f)));
+        sc->Draw(GL_TRUE, glm::vec3(1.0));
         
 //        p.SetActive("lights");
-//        cam_man->SendUniformMatrix();
 //        lman->RenderLights();
         
         win.Swap();
@@ -56,25 +56,9 @@ void tsys::Loop() {
 
 
 void tsys::InitBuffers() {
-    GLfloat verts[] = {
-        -0.5, -0.5, 1.0, 0.0, 0.0,
-         0.5, -0.5, 0.0, 1.0, 0.0,
-         0.5,  0.5, 0.0, 0.0, 1.0,
-        -0.5,  0.5, 1.0, 1.0, 0.0
-    };
-    
     vaoman.NewVAO(10);
     {
-        GLuint vbo;
-        glGenBuffers(1, &vbo);
-        glBindBuffer(GL_ARRAY_BUFFER, vbo);
-        
-        glBufferData(GL_ARRAY_BUFFER, sizeof(verts), verts, GL_STATIC_DRAW);
-        
-        glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), 0);
-        glEnableVertexAttribArray(0);
-        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), BUFFER_OFFSET(2 * sizeof(GLfloat)));
-        glEnableVertexAttribArray(1);
+        sc = new Scene("assets/nanosuit/nanosuit.obj");
     }
     vaoman.Unbind();
 }
