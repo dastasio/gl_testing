@@ -10,7 +10,7 @@ public:
     }
     
     /* modifiers */
-    void NewProgram(const char* name, const char* vsh, const char* fsh);
+    void NewProgram(const char* name, const char* vsh, const char* fsh, const char *gsh = nullptr);
     bool SetActive(const char* name);
     void Erase(const char* name);
     

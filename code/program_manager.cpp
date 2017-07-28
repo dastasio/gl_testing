@@ -1,7 +1,7 @@
 #include "program_manager.hpp"
 #include <iostream>
 
-void ProgramMan::NewProgram(const char *name, const char *vsh, const char *fsh) {
+void ProgramMan::NewProgram(const char *name, const char *vsh, const char *fsh, const char *gsh) {
     auto success = this->programs.insert(std::pair<const char*, Program*>(name, nullptr));
     if (!success.second) {
         std::cout << "[ERROR] Program already existing with name '" << name << "'" << std::endl;
@@ -9,7 +9,7 @@ void ProgramMan::NewProgram(const char *name, const char *vsh, const char *fsh) 
     }
     else {
         /* if it's not a duplicate name, create new program */
-        this->programs[name] = new Program(vsh, fsh);
+        this->programs[name] = new Program(vsh, fsh, gsh);
         this->programs[name]->compile();
         this->active_name = name;
     }

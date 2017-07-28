@@ -12,9 +12,7 @@ void tsys::Init() {
     /* creating window nad context initialization*/
     Window &win = Window::instance("test1", 4, 1, WIDTH, HEIGHT);
     /* initializing OpenGL program */
-    p.NewProgram("main", "assets/shader.vert", "assets/shader.frag");
-    p.NewProgram("skybox", "assets/cubemap.vert", "assets/cubemap.frag");
-    p.NewProgram("fbo", "assets/fbo.vert", "assets/fbo.frag");
+    p.NewProgram("main", "assets/shader.vert", "assets/shader.frag", "assets/shader.geom");
     /* initializing camera manager */
     cam_man = new CameraMan();
     
@@ -22,59 +20,34 @@ void tsys::Init() {
     win.printStats();
     
     InitBuffers();
-    skybox->ActiveCubemap(0);
     
     cam_man->Add("main", vec3(0.0, 0.0, -3.0));
     cam_man->SetActive("main");
-    
-    fbo = win.NewFramebuffer();
-    texture = win.InitFramebuffer(fbo);
 }
 
 
 void tsys::Loop() {
     Window& win = Window::instance("");
-    LightMan* lman = new LightMan();
-    lman->NewLight(glm::vec3(0.0, 2.0, 0.0), glm::vec3(1.0, 0.9, 0.0));
+//    LightMan* lman = new LightMan();
+//    lman->NewLight(glm::vec3(0.0, 2.0, 0.0), glm::vec3(1.0, 0.9, 0.0));
     
     SDL_SetRelativeMouseMode(SDL_TRUE);
     
     glClearColor(0.05, 0.05, 0.05, 1.0);
     
+    p.SetActive("main");
     while (input()) {
         vaoman.BindVAO(10);
         glEnable(GL_DEPTH_TEST);
-        glEnable(GL_BLEND);
         
-        glBindFramebuffer(GL_FRAMEBUFFER, fbo);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         
-        p.SetActive("fbo");
-        cam_man->SendUniformMatrix();
-        cam_man->SendEyePosition();
-        skybox->ActiveCubemap(p.GetActiveUniformLocation("skybox"));
-        sc->Draw(GL_FALSE, glm::vec3(1.0));
+        glDrawArrays(GL_POINTS, 0, 4);
         
         
-        p.SetActive("skybox");
-        glDepthFunc(GL_LEQUAL);
-        cam_man->SendUniformMatrix();
-        skybox->RenderSkybox(p.GetActiveUniformLocation("skybox"));
-        glDepthFunc(GL_LESS);
-        
-        p.SetActive("lights");
-        cam_man->SendUniformMatrix();
-        lman->RenderLights();
-        
-        glDisable(GL_DEPTH_TEST);
-        p.SetActive("main");
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        glClear(GL_COLOR_BUFFER_BIT);
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, texture);
-        glUniform1i(p.GetActiveUniformLocation("tx"), 0);
-        quad->Draw(GL_TRUE, glm::vec3(1.0));
-        glEnable(GL_DEPTH_TEST);
+//        p.SetActive("lights");
+//        cam_man->SendUniformMatrix();
+//        lman->RenderLights();
         
         win.Swap();
     }
@@ -83,11 +56,25 @@ void tsys::Loop() {
 
 
 void tsys::InitBuffers() {
+    GLfloat verts[] = {
+        -0.5, -0.5, 1.0, 0.0, 0.0,
+         0.5, -0.5, 0.0, 1.0, 0.0,
+         0.5,  0.5, 0.0, 0.0, 1.0,
+        -0.5,  0.5, 1.0, 1.0, 0.0
+    };
+    
     vaoman.NewVAO(10);
     {
-        sc = new Scene("assets/scene.fbx");
-        quad = new Scene("assets/quad.fbx");
-        skybox = new Scene("assets/skybox.fbx");
+        GLuint vbo;
+        glGenBuffers(1, &vbo);
+        glBindBuffer(GL_ARRAY_BUFFER, vbo);
+        
+        glBufferData(GL_ARRAY_BUFFER, sizeof(verts), verts, GL_STATIC_DRAW);
+        
+        glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), 0);
+        glEnableVertexAttribArray(0);
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), BUFFER_OFFSET(2 * sizeof(GLfloat)));
+        glEnableVertexAttribArray(1);
     }
     vaoman.Unbind();
 }

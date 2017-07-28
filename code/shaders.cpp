@@ -9,22 +9,28 @@
  * path: path of the file to read
  */
 void Shader::ReadSource(const char *path) {
-    std::ifstream file(path, std::ios::in);
-    
-    if (!file.good()) {
-        std::cerr << "[ERROR] Could not open " << path << std::endl;
-        exit(EXIT_FAILURE);
+    if (path == nullptr) {
+        this->src = nullptr;
+        this->length = 0;
     }
-    
-    file.seekg(0, std::ios::end);
-    uint l = file.tellg();
-    char* source = new char[l];
-    
-    file.seekg(0, std::ios::beg);
-    file.read(source, l);
-    
-    this->src = source;
-    this->length = l;
+    else {
+        std::ifstream file(path, std::ios::in);
+        
+        if (!file.good()) {
+            std::cerr << "[ERROR] Could not open " << path << std::endl;
+            exit(EXIT_FAILURE);
+        }
+        
+        file.seekg(0, std::ios::end);
+        uint l = file.tellg();
+        char* source = new char[l];
+        
+        file.seekg(0, std::ios::beg);
+        file.read(source, l);
+        
+        this->src = source;
+        this->length = l;
+    }
 }
 
 
@@ -32,8 +38,8 @@ void Shader::ReadSource(const char *path) {
  * ----------------------------------------------
  * creates empty program and reads shaders' sources
  */
-Program::Program(const char* vert_path, const char* frag_path) :
-vertex(vert_path), fragment(frag_path) {
+Program::Program(const char* vert_path, const char* frag_path, const char* geom_path) :
+vertex(vert_path), fragment(frag_path), geometry(geom_path) {
 }
 
 
@@ -41,10 +47,16 @@ vertex(vert_path), fragment(frag_path) {
 void Program::compile() {
     GLuint vert = this->vertex.compile(GL_VERTEX_SHADER);
     GLuint frag = this->fragment.compile(GL_FRAGMENT_SHADER);
+    GLuint geom;
+    if (this->geometry.length > 0) {
+        geom = this->geometry.compile(GL_GEOMETRY_SHADER);
+    }
     
     program = glCreateProgram();
     glAttachShader(program, vert);
     glAttachShader(program, frag);
+    if (this->geometry.length > 0)
+        glAttachShader(program, geom);
     glLinkProgram(program);
     
     GLint success = 0;
@@ -60,6 +72,7 @@ void Program::compile() {
     
     this->vertex.~Shader();
     this->fragment.~Shader();
+    this->geometry.~Shader();
 }
 
 

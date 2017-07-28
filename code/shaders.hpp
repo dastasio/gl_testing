@@ -23,7 +23,9 @@ struct Shader {
 
 class Program {
 public:
-    Program(const char* vert_path, const char* frag_path);
+    Program(const char* vert_path,
+            const char* frag_path,
+            const char* geom_path = nullptr);
     ~Program();
     
     void compile();
@@ -32,6 +34,6 @@ public:
     GLint getUniformLocation(const GLchar* name);
     GLuint getProgram() { return program; }
 private:
-    Shader vertex, fragment;
+    Shader vertex, fragment, geometry;
     GLuint program;
 };
