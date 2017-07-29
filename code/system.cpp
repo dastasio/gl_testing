@@ -12,7 +12,8 @@ void tsys::Init() {
     /* creating window nad context initialization*/
     Window &win = Window::instance("test1", 4, 1, WIDTH, HEIGHT);
     /* initializing OpenGL program */
-    p.NewProgram("main", "assets/shader.vert", "assets/shader.frag", "assets/shader.geom");
+    p.NewProgram("normals", "assets/normal.vert", "assets/normal.frag", "assets/normal.geom");
+    p.NewProgram("main", "assets/shader.vert", "assets/shader.frag");
     /* initializing camera manager */
     cam_man = new CameraMan();
     
@@ -35,16 +36,19 @@ void tsys::Loop() {
     
     glClearColor(0.05, 0.05, 0.05, 1.0);
     
-    p.SetActive("main");
     while (input()) {
         vaoman.BindVAO(10);
         glEnable(GL_DEPTH_TEST);
         
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         
+        p.SetActive("main");
         cam_man->SendUniformMatrix();
-        glUniform1d(p.GetActiveUniformLocation("anim_time"), glm::sin(GLdouble(SDL_GetTicks() / 1000.f)));
         sc->Draw(GL_TRUE, glm::vec3(1.0));
+        
+        p.SetActive("normals");
+        cam_man->SendUniformMatrix();
+        sc->Draw(GL_FALSE, glm::vec3(1.0));
         
 //        p.SetActive("lights");
 //        lman->RenderLights();

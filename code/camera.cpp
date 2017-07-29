@@ -46,7 +46,7 @@ mat4 Camera::getCamSpace() {
  * returns: matrix that includes camera space and perspective transform
  */
 mat4 Camera::getProjection() {
-    return perspective(45.f, AR, 0.01f, 100.f);
+    return perspective(45.f, AR, 0.3f, 100.f);
 }
 
 /* Getter: Position
