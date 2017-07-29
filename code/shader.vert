@@ -1,14 +1,12 @@
-#version 410 core
-layout (location = 0) in vec3 pos;
-layout (location = 2) in vec2 txc;
+#version 400 core
+layout (location = 0) in vec2 pos;
+layout (location = 1) in vec3 col;
+layout (location = 2) in vec2 translation;
 
-out vec2 tx_coords;
-
-uniform mat4 projection;
-uniform mat4 view;
-uniform mat4 model;
+out vec3 color;
 
 void main() {
-	gl_Position = projection * view * model * vec4(pos, 1.0);
-	tx_coords = txc;
+	vec2 size = vec2(gl_InstanceID / 100.0);
+	gl_Position = vec4(size * pos + translation, 0.0, 1.0);
+	color = col;
 }

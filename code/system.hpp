@@ -9,7 +9,6 @@
 namespace tsys {
     ProgramMan &p = ProgramMan::instance();
     VAOMan &vaoman = VAOMan::instance();
-    Scene *sc;
     
     CameraMan *cam_man;
     
