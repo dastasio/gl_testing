@@ -176,7 +176,7 @@ void Scene::Draw(GLboolean tex, glm::vec3 scale) {
                 tex_man->Use(meshes[i]->tx_diffuse[0], 0, prog_man.GetActiveUniformLocation("mat.diffuse"));
             }
             if (meshes[i]->tx_specular.size() > 0) {
-//                tex_man->Use(meshes[i]->tx_specular[0], 1, prog_man.GetActiveUniformLocation("mat.specular"));
+                tex_man->Use(meshes[i]->tx_specular[0], 1, prog_man.GetActiveUniformLocation("mat.specular"));
             }
         }
         glm::mat4 model = TO_GLM_MATRIX(meshes[i]->transform_mat);
