@@ -16,6 +16,7 @@ public:
     
     void Use(std::string name, GLint index, GLint location);
     void ActiveCubemap(GLint location, GLint index);
+    void ActiveShadowMap(GLint location, GLuint map);
     
 private:
     std::map<std::string, GLuint> textures;

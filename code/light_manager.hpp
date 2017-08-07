@@ -3,6 +3,7 @@
 #include "vao_manager.hpp"
 #include <glm/glm.hpp>
 #include <vector>
+#define SHADOW_MAP_WH 1024
 
 struct Light {
     typedef glm::vec3 vec3;
@@ -23,16 +24,23 @@ public:
     LightMan();
     ~LightMan();
     
-    int NewLight(glm::vec3 p, glm::vec3 c);
-    void EraseLight(int light_id);
+    void NewPointLight(glm::vec3 p, glm::vec3 c);
+    void NewDirLight(glm::vec3 dir, glm::vec3 c);
+    void NewLightShadowMapped(glm::vec3 dir, glm::vec3 c);
     
     void CalculateLighting();
+    GLuint MapShadows(void (*drawScene)(glm::mat4), glm::mat4&);
     void RenderLights();
 private:
-    std::vector<Light> lights;
+    std::vector<Light> point_lights;
+    std::vector<Light> dir_lights;
+    Light *directional_shadow;
+    GLuint shadow_map, shadow_framebuffer;
     
-    GLint UniformArrayLocation;
-    GLint UniformArraySizeLocation;
+    GLint UniformArrayLocation_point;
+    GLint UniformArrayLocation_dir;
+    GLint UniformArraySizeLocation_point;
+    GLint UniformArraySizeLocation_dir;
     GLint UniformColorLocation;
     
     static void InitVAO();

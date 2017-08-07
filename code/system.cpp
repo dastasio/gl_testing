@@ -12,6 +12,7 @@ void tsys::Init() {
     /* creating window nad context initialization*/
     Window &win = Window::instance("test1", 4, 1, WIDTH, HEIGHT);
     /* initializing OpenGL program */
+    p.NewProgram("shadowMapping", "assets/shadow.vert", "assets/shadow.frag");
     p.NewProgram("main", "assets/shader.vert", "assets/shader.frag");
     /* initializing camera manager */
     cam_man = new CameraMan();
@@ -25,26 +26,42 @@ void tsys::Init() {
     cam_man->SetActive("main");
 }
 
+void tsys::DrawShadows(glm::mat4 LightSpaceMatrix) {
+    glUniformMatrix4fv(p.GetActiveUniformLocation("lightSpaceMatrix"), 1, GL_FALSE, glm::value_ptr(LightSpaceMatrix));
+    
+    sc->Draw(GL_FALSE, glm::vec3(1.0));
+}
 
 void tsys::Loop() {
     Window& win = Window::instance("");
     LightMan* lman = new LightMan();
-    lman->NewLight(glm::vec3(0.0, 0.8, 0.0), glm::vec3(1.0));
+//    lman->NewPointLight(glm::vec3(-1.2, 1.9, 1.5), glm::vec3(1.0));
+    lman->NewLightShadowMapped(glm::vec3(-0.2, -1.0, -0.3), glm::vec3(1.0, 0.9, 0.5));
     
     SDL_SetRelativeMouseMode(SDL_TRUE);
     
     glClearColor(0.05, 0.05, 0.05, 1.0);
     
+    TextureMan *tman = new TextureMan();
+    glm::mat4 lightSpaceMatrix;
+    
     while (input()) {
         vaoman.BindVAO(10);
         glEnable(GL_DEPTH_TEST);
+        glEnable(GL_CULL_FACE);
+        lman->CalculateLighting(); // used to prevent light arrays from being deleted
         
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        p.SetActive("shadowMapping");
+        GLuint shadowMap = lman->MapShadows(tsys::DrawShadows, lightSpaceMatrix);
         
         p.SetActive("main");
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         cam_man->SendUniformMatrix();
         cam_man->SendEyePosition();
         lman->CalculateLighting();
+        tman->ActiveShadowMap(p.GetActiveUniformLocation("shadowMap"), shadowMap);
+        glUniformMatrix4fv(p.GetActiveUniformLocation("lightSpaceMatrix"), 1, GL_FALSE, glm::value_ptr(lightSpaceMatrix));
+        glUniform1d(p.GetActiveUniformLocation("gamma"), 2.2);
         sc->Draw(GL_TRUE, glm::vec3(1.0));
         
         p.SetActive("lights");
@@ -60,7 +77,7 @@ void tsys::Loop() {
 void tsys::InitBuffers() {
     vaoman.NewVAO(10);
     {
-        sc = new Scene("assets/light_test.fbx");
+        sc = new Scene("assets/shadow_test.fbx");
     }
     vaoman.Unbind();
 }

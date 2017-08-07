@@ -50,7 +50,7 @@ void TextureMan::AddTexture(const char *path, std::string name) {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
     
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, tx.w, tx.h, 0, tx.format, GL_UNSIGNED_BYTE, tx.pixels);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_SRGB, tx.w, tx.h, 0, tx.format, GL_UNSIGNED_BYTE, tx.pixels);
     glGenerateMipmap(GL_TEXTURE_2D);
     
     glBindTexture(GL_TEXTURE_2D, 0);
@@ -88,6 +88,13 @@ void TextureMan::AddCubemap(std::string pdir) {
                      GL_UNSIGNED_BYTE, face.pixels);
     }
     glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+}
+
+void TextureMan::ActiveShadowMap(GLint location, GLuint map) {
+    glActiveTexture(GL_TEXTURE19);
+    glBindTexture(GL_TEXTURE_2D, map);
+    
+    glUniform1i(location, 19);
 }
 
 

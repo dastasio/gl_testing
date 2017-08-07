@@ -1,4 +1,5 @@
 #include "light_manager.hpp"
+#include <iostream>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
@@ -8,8 +9,10 @@ LightMan::LightMan() {
     ProgramMan &pman = ProgramMan::instance();
     
     /* getting uniform location of variables from main program */
-    this->UniformArrayLocation = pman.GetActiveUniformLocation("lights");
-    this->UniformArraySizeLocation = pman.GetActiveUniformLocation("N_LIGHTS");
+    this->UniformArrayLocation_point = pman.GetActiveUniformLocation("p_lights");
+    this->UniformArrayLocation_dir = pman.GetActiveUniformLocation("dir_lights");
+    this->UniformArraySizeLocation_point = pman.GetActiveUniformLocation("N_PLIGHTS");
+    this->UniformArraySizeLocation_dir = pman.GetActiveUniformLocation("N_DLIGHTS");
     
     /* creating program for light rendering */
     pman.NewProgram("lights", "assets/light.vert", "assets/light.frag");
@@ -22,19 +25,72 @@ LightMan::LightMan() {
     }
 }
 
-int LightMan::NewLight(glm::vec3 p, glm::vec3 c) {
-    this->lights.emplace_back(p, c);
-    return lights.size() - 1;
+void LightMan::NewPointLight(glm::vec3 p, glm::vec3 c) {
+    this->point_lights.emplace_back(p, c);
 }
 
-void LightMan::EraseLight(int light_id) {
-    this->lights.erase(this->lights.begin() + light_id);
+void LightMan::NewDirLight(glm::vec3 dir, glm::vec3 c) {
+    /* max 2 dir lights for project */
+    if (this->dir_lights.size() >= 1)
+        std::cout << "[INFO] Reached maximum number of directional lights!" << std::endl;
+    else
+        this->dir_lights.emplace_back(dir, c);
+}
+
+void LightMan::NewLightShadowMapped(glm::vec3 dir, glm::vec3 c) {
+    this->directional_shadow = new Light(dir, c);
+    
+    /* generating texture */
+    glGenTextures(1, &shadow_map);
+    glBindTexture(GL_TEXTURE_2D, shadow_map);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, SHADOW_MAP_WH, SHADOW_MAP_WH, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+    GLfloat border[] = { 1.0, 1.0, 1.0, 1.0 };
+    glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, border);
+    
+    /* generating framebuffer */
+    glGenFramebuffers(1, &shadow_framebuffer);
+    glBindFramebuffer(GL_FRAMEBUFFER, shadow_framebuffer);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, shadow_map, 0);
+    /* deactivating color buffer */
+    glDrawBuffer(GL_NONE);
+    glReadBuffer(GL_NONE);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+GLuint LightMan::MapShadows(void (*drawScene)(glm::mat4), glm::mat4 &lspaceMat) {
+    /* getting current viewport settings */
+    GLint viewport[4];
+    glGetIntegerv(GL_VIEWPORT, viewport);
+    
+    /* generating shadow map */
+    glViewport(0, 0, SHADOW_MAP_WH, SHADOW_MAP_WH);
+    glBindFramebuffer(GL_FRAMEBUFFER, shadow_framebuffer);
+    glClear(GL_DEPTH_BUFFER_BIT);
+    glCullFace(GL_FRONT);
+    
+    glm::mat4 projection = glm::ortho(-10.0, 10.0, -10.0, 10.0, 1.0, 7.5);
+    glm::mat4 lightspace = glm::lookAt(-3.f * directional_shadow->position, glm::vec3(0.0), glm::vec3(0.0, 1.0, 0.0));
+    lspaceMat = projection * lightspace;
+    drawScene(lspaceMat);
+    
+    /* restoring previous state */
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glViewport(viewport[0], viewport[1], viewport[2], viewport[3]);
+    glCullFace(GL_BACK);
+    return shadow_map;
 }
 
 
 void LightMan::CalculateLighting() {
-    glUniform3fv(UniformArrayLocation, lights.size() * 4, glm::value_ptr(lights[0].position));
-    glUniform1i(UniformArraySizeLocation, this->lights.size());
+    glUniform3fv(UniformArrayLocation_point, point_lights.size() * 4, glm::value_ptr(point_lights[0].position));
+    glUniform1i(UniformArraySizeLocation_point, this->point_lights.size());
+    
+    glUniform3fv(UniformArrayLocation_dir, sizeof(directional_shadow), glm::value_ptr(directional_shadow->position));
+    glUniform1i(UniformArraySizeLocation_dir, 1);
 }
 
 void LightMan::RenderLights() {
@@ -45,16 +101,17 @@ void LightMan::RenderLights() {
     vman.BindVAO(light_vao_index);
     
     GLint UniformModelMatrixLocation = pman.GetActiveUniformLocation("model");
-    for (int i = 0; i < this->lights.size(); ++i) {
-        glm::vec3 color = lights[i].c_diff;
+    for (int i = 0; i < this->point_lights.size(); ++i) {
+        glm::vec3 color = point_lights[i].c_diff;
         glm::mat4 transform = glm::mat4(1.0);
-        transform = glm::translate(transform, lights[i].position);
+        transform = glm::translate(transform, point_lights[i].position);
         transform = glm::scale(transform, glm::vec3(0.2));
         
         glUniformMatrix4fv(UniformModelMatrixLocation, 1, GL_FALSE, glm::value_ptr(transform));
         glUniform3f(UniformColorLocation, color.r, color.g, color.b);
         glDrawElements(GL_TRIANGLES, 144, GL_UNSIGNED_INT, 0);
     }
+    
     /* restoring previous state */
     glBindVertexArray(prevVAO);
 }
@@ -127,8 +184,4 @@ void LightMan::InitVAO() {
 }
 
 LightMan::~LightMan() {
-    delete &this->UniformArraySizeLocation;
-    delete &this->UniformArrayLocation;
-    lights.clear();
-    delete &this->lights;
 }
