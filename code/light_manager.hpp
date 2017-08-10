@@ -26,16 +26,21 @@ public:
     
     void NewPointLight(glm::vec3 p, glm::vec3 c);
     void NewDirLight(glm::vec3 dir, glm::vec3 c);
-    void NewLightShadowMapped(glm::vec3 dir, glm::vec3 c);
+    void NewDirShadowMap(glm::vec3 dir, glm::vec3 c);
+    void NewPointShadowMap(glm::vec3 p, glm::vec3 c);
     
     void CalculateLighting();
-    GLuint MapShadows(void (*drawScene)(glm::mat4), glm::mat4&);
+    GLuint MapDirShadows(void (*drawScene)(glm::mat4), glm::mat4&);
+    GLuint MapPointShadows(void (*drawScene)());
     void RenderLights();
 private:
     std::vector<Light> point_lights;
     std::vector<Light> dir_lights;
+    std::vector<glm::mat4> lightSpaces;
     Light *directional_shadow;
-    GLuint shadow_map, shadow_framebuffer;
+    Light *point_shadow;
+    GLuint shadow_map2D, shadow_cubemap,
+    shadow2D_fb, shadowcube_fb;
     
     GLint UniformArrayLocation_point;
     GLint UniformArrayLocation_dir;

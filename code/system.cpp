@@ -12,7 +12,7 @@ void tsys::Init() {
     /* creating window nad context initialization*/
     Window &win = Window::instance("test1", 4, 1, WIDTH, HEIGHT);
     /* initializing OpenGL program */
-    p.NewProgram("shadowMapping", "assets/shadow.vert", "assets/shadow.frag");
+    p.NewProgram("shadowMapping", "assets/shadow.vert", "assets/shadow.frag", "assets/shadow.geom");
     p.NewProgram("main", "assets/shader.vert", "assets/shader.frag");
     /* initializing camera manager */
     cam_man = new CameraMan();
@@ -26,9 +26,7 @@ void tsys::Init() {
     cam_man->SetActive("main");
 }
 
-void tsys::DrawShadows(glm::mat4 LightSpaceMatrix) {
-    glUniformMatrix4fv(p.GetActiveUniformLocation("lightSpaceMatrix"), 1, GL_FALSE, glm::value_ptr(LightSpaceMatrix));
-    
+void tsys::DrawShadows() {
     sc->Draw(GL_FALSE, glm::vec3(1.0));
 }
 
@@ -36,31 +34,33 @@ void tsys::Loop() {
     Window& win = Window::instance("");
     LightMan* lman = new LightMan();
 //    lman->NewPointLight(glm::vec3(-1.2, 1.9, 1.5), glm::vec3(1.0));
-    lman->NewLightShadowMapped(glm::vec3(-0.2, -1.0, -0.3), glm::vec3(1.0, 0.9, 0.5));
+    lman->NewPointShadowMap(glm::vec3(0.0, 2.0, 0.0), glm::vec3(1.0));
     
     SDL_SetRelativeMouseMode(SDL_TRUE);
     
     glClearColor(0.05, 0.05, 0.05, 1.0);
     
-    TextureMan *tman = new TextureMan();
-    glm::mat4 lightSpaceMatrix;
-    
     while (input()) {
         vaoman.BindVAO(10);
         glEnable(GL_DEPTH_TEST);
         glEnable(GL_CULL_FACE);
-        lman->CalculateLighting(); // used to prevent light arrays from being deleted
+        glEnable(GL_MULTISAMPLE);
+//        lman->CalculateLighting(); // used to prevent light arrays from being deleted
         
         p.SetActive("shadowMapping");
-        GLuint shadowMap = lman->MapShadows(tsys::DrawShadows, lightSpaceMatrix);
+        glUniform1f(p.GetActiveUniformLocation("far_plane"), 25.f);
+        GLuint cubeDepth = lman->MapPointShadows(tsys::DrawShadows);
         
         p.SetActive("main");
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         cam_man->SendUniformMatrix();
         cam_man->SendEyePosition();
         lman->CalculateLighting();
-        tman->ActiveShadowMap(p.GetActiveUniformLocation("shadowMap"), shadowMap);
-        glUniformMatrix4fv(p.GetActiveUniformLocation("lightSpaceMatrix"), 1, GL_FALSE, glm::value_ptr(lightSpaceMatrix));
+        glActiveTexture(GL_TEXTURE18);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, cubeDepth);
+        glUniform1i(p.GetActiveUniformLocation("shadowMap"), 18);
+        glUniform1f(p.GetActiveUniformLocation("far_plane"), 25.f);
+        glUniform3f(p.GetActiveUniformLocation("lightpos"), 0.0, 0.4, 0.0);
         glUniform1d(p.GetActiveUniformLocation("gamma"), 2.2);
         sc->Draw(GL_TRUE, glm::vec3(1.0));
         

@@ -25,6 +25,7 @@ LightMan::LightMan() {
     }
 }
 
+
 void LightMan::NewPointLight(glm::vec3 p, glm::vec3 c) {
     this->point_lights.emplace_back(p, c);
 }
@@ -37,12 +38,12 @@ void LightMan::NewDirLight(glm::vec3 dir, glm::vec3 c) {
         this->dir_lights.emplace_back(dir, c);
 }
 
-void LightMan::NewLightShadowMapped(glm::vec3 dir, glm::vec3 c) {
+void LightMan::NewDirShadowMap(glm::vec3 dir, glm::vec3 c) {
     this->directional_shadow = new Light(dir, c);
     
     /* generating texture */
-    glGenTextures(1, &shadow_map);
-    glBindTexture(GL_TEXTURE_2D, shadow_map);
+    glGenTextures(1, &shadow_map2D);
+    glBindTexture(GL_TEXTURE_2D, shadow_map2D);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, SHADOW_MAP_WH, SHADOW_MAP_WH, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -52,23 +53,79 @@ void LightMan::NewLightShadowMapped(glm::vec3 dir, glm::vec3 c) {
     glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, border);
     
     /* generating framebuffer */
-    glGenFramebuffers(1, &shadow_framebuffer);
-    glBindFramebuffer(GL_FRAMEBUFFER, shadow_framebuffer);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, shadow_map, 0);
+    glGenFramebuffers(1, &shadow2D_fb);
+    glBindFramebuffer(GL_FRAMEBUFFER, shadow2D_fb);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, shadow_map2D, 0);
     /* deactivating color buffer */
     glDrawBuffer(GL_NONE);
     glReadBuffer(GL_NONE);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-GLuint LightMan::MapShadows(void (*drawScene)(glm::mat4), glm::mat4 &lspaceMat) {
+void LightMan::NewPointShadowMap(glm::vec3 p, glm::vec3 c) {
+    this->point_shadow = new Light(p, c);
+    
+    glGenFramebuffers(1, &shadowcube_fb);
+    glBindFramebuffer(GL_FRAMEBUFFER, shadowcube_fb);
+    glDrawBuffer(GL_NONE);
+    glReadBuffer(GL_NONE);
+    
+    glGenTextures(1, &shadow_cubemap);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, shadow_cubemap);
+    for (int i = 0; i < 6; i++)
+        glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_DEPTH_COMPONENT, SHADOW_MAP_WH, SHADOW_MAP_WH, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+    
+    glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, shadow_cubemap, 0);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    
+    using glm::lookAt;
+    glm::vec3 light_pos = point_shadow->position;
+    glm::mat4 proj = glm::perspective(90.f, 1.f, 1.f, 25.f);
+    lightSpaces.push_back(proj * lookAt(light_pos, light_pos + glm::vec3( 1.0, 0.0, 0.0), glm::vec3( 0.0,-1.0, 0.0)));
+    lightSpaces.push_back(proj * lookAt(light_pos, light_pos + glm::vec3(-1.0, 0.0, 0.0), glm::vec3( 0.0,-1.0, 0.0)));
+    lightSpaces.push_back(proj * lookAt(light_pos, light_pos + glm::vec3( 0.0, 1.0, 0.0), glm::vec3( 0.0, 0.0, 1.0)));
+    lightSpaces.push_back(proj * lookAt(light_pos, light_pos + glm::vec3( 0.0,-1.0, 0.0), glm::vec3( 0.0, 0.0,-1.0)));
+    lightSpaces.push_back(proj * lookAt(light_pos, light_pos + glm::vec3( 0.0, 0.0, 1.0), glm::vec3( 0.0,-1.0, 0.0)));
+    lightSpaces.push_back(proj * lookAt(light_pos, light_pos + glm::vec3( 0.0, 0.0,-1.0), glm::vec3( 0.0,-1.0, 0.0)));
+}
+
+
+GLuint LightMan::MapPointShadows(void (*drawScene)()) {
+    ProgramMan &pman = ProgramMan::instance();
+    
     /* getting current viewport settings */
     GLint viewport[4];
     glGetIntegerv(GL_VIEWPORT, viewport);
     
     /* generating shadow map */
     glViewport(0, 0, SHADOW_MAP_WH, SHADOW_MAP_WH);
-    glBindFramebuffer(GL_FRAMEBUFFER, shadow_framebuffer);
+    glBindFramebuffer(GL_FRAMEBUFFER, shadowcube_fb);
+    glClear(GL_DEPTH_BUFFER_BIT);
+    glCullFace(GL_FRONT);
+    
+    glUniformMatrix4fv(pman.GetActiveUniformLocation("shadowMatrices"), 6, GL_FALSE, glm::value_ptr(lightSpaces[0]));
+    drawScene();
+    
+    /* restoring previous state */
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glViewport(viewport[0], viewport[1], viewport[2], viewport[3]);
+    glCullFace(GL_BACK);
+    return shadow_cubemap;
+}
+
+GLuint LightMan::MapDirShadows(void (*drawScene)(glm::mat4), glm::mat4 &lspaceMat) {
+    /* getting current viewport settings */
+    GLint viewport[4];
+    glGetIntegerv(GL_VIEWPORT, viewport);
+    
+    /* generating shadow map */
+    glViewport(0, 0, SHADOW_MAP_WH, SHADOW_MAP_WH);
+    glBindFramebuffer(GL_FRAMEBUFFER, shadow2D_fb);
     glClear(GL_DEPTH_BUFFER_BIT);
     glCullFace(GL_FRONT);
     
@@ -81,16 +138,21 @@ GLuint LightMan::MapShadows(void (*drawScene)(glm::mat4), glm::mat4 &lspaceMat) 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glViewport(viewport[0], viewport[1], viewport[2], viewport[3]);
     glCullFace(GL_BACK);
-    return shadow_map;
+    return shadow_map2D;
 }
-
 
 void LightMan::CalculateLighting() {
     glUniform3fv(UniformArrayLocation_point, point_lights.size() * 4, glm::value_ptr(point_lights[0].position));
     glUniform1i(UniformArraySizeLocation_point, this->point_lights.size());
     
-    glUniform3fv(UniformArrayLocation_dir, sizeof(directional_shadow), glm::value_ptr(directional_shadow->position));
-    glUniform1i(UniformArraySizeLocation_dir, 1);
+    ProgramMan &pman = ProgramMan::instance();
+    glUniform3fv(pman.GetActiveUniformLocation("shadowLight_p"), 1, glm::value_ptr(point_shadow->position));
+    glUniform3fv(pman.GetActiveUniformLocation("shadowLight_camb"), 1, glm::value_ptr(point_shadow->c_amb));
+    glUniform3fv(pman.GetActiveUniformLocation("shadowLight_cdiff"), 1, glm::value_ptr(point_shadow->c_diff));
+    glUniform3fv(pman.GetActiveUniformLocation("shadowLight_cspec"), 1, glm::value_ptr(point_shadow->c_spec));
+    
+    //glUniform3fv(UniformArrayLocation_dir, sizeof(directional_shadow), glm::value_ptr(directional_shadow->position));
+//    glUniform1i(UniformArraySizeLocation_dir, 1);
 }
 
 void LightMan::RenderLights() {

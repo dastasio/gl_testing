@@ -16,7 +16,7 @@ namespace tsys {
     void Init();
     void InitBuffers();
     
-    void DrawShadows(glm::mat4);
+    void DrawShadows();
     void Loop();
     
     bool input();
