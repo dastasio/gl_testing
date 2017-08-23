@@ -1,6 +1,7 @@
 #pragma once
 #include "program_manager.hpp"
 #include "camera_manager.hpp"
+#include "light_manager.hpp"
 #include "vao_manager.hpp"
 #include "texture.hpp"
 #include "scene.hpp"
@@ -9,6 +10,7 @@
 namespace tsys {
     ProgramMan &p = ProgramMan::instance();
     VAOMan &vaoman = VAOMan::instance();
+    LightMan* lman;
     Scene *sc;
     
     CameraMan *cam_man;

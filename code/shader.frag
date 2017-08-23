@@ -52,6 +52,8 @@ uniform float far_plane;
 
 uniform samplerCube shadowMap;
 
+uniform bool depthVisual;
+
 void main() { 
 	vec3 final = calcPointLight(-1);
 	if (N_PLIGHTS > N_DLIGHTS) {
@@ -63,8 +65,14 @@ void main() {
 	for (int i = 0; i < N_DLIGHTS; i++) {
 		final += calcDirLight(i);
 	}
- 
- 	color = vec4(pow(final, vec3(1.0 / gamma)), 1.0); 
+
+	vec3 fragToLight = fragpos - lightpos;
+	float closestDepth = texture(shadowMap, fragToLight).r;
+ 	
+ 	if (depthVisual)
+ 		color = vec4(pow(vec3(closestDepth / far_plane) / 10, vec3(1.f / gamma)), 1.0);
+ 	else
+ 		color = vec4(pow(final, vec3(1.0 / gamma)), 1.0); 
 } 
  
 vec3 calcPointLight(int n) {
@@ -74,23 +82,25 @@ vec3 calcPointLight(int n) {
 		vec3 ViewDir = normalize(eye - fragpos); 
 		
 		/* ambient lighting */ 
-		vec3 final_ambient = shadowLight_camb * vec3(texture(mat.diffuse, txc)); 
+		vec3 final_ambient = shadowLight_camb * texture(mat.diffuse, txc).rgb; 
 		
 		/* diffuse lighting */ 
-		float diff_intensity = max(dot(normal, LightDir), 0.0); 
-		vec3 final_diffuse = shadowLight_cdiff * diff_intensity * vec3(texture(mat.diffuse, txc)); 
+		float diff_intensity = max(dot(LightDir, normal), 0.0); 
+		vec3 final_diffuse = shadowLight_cdiff * diff_intensity;// * vec3(texture(mat.diffuse, txc)); 
 		
 		/* specular lighting */ 
 		vec3 halfwayVector = normalize(LightDir + ViewDir);
 		float spec_intensity = pow(max(dot(normal, halfwayVector), 0.0), 32);
-		vec3 final_specular = shadowLight_cspec * spec_intensity * vec3(1.0); //vec3(texture(mat.specular, txc)); 
+		vec3 final_specular = shadowLight_cspec * spec_intensity;// * vec3(1.0); //vec3(texture(mat.specular, txc)); 
 		
 		float distance = length(LightPosition - fragpos);
 		float attenuation = 1.0 / (distance * distance);
 
 		/* shadow */
 		float shadow = calcShadow();
-		vec3 final_lighting = (1.0 - shadow) * (final_diffuse + final_specular);
+		vec3 final_lighting = final_ambient + (1.0 - shadow) * (final_diffuse + final_specular);
+		final_lighting *= texture(mat.diffuse, txc).rgb;
+		//final_lighting *= attenuation;
 
 		return final_lighting;
 	}

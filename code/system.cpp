@@ -1,11 +1,12 @@
 #include "system.hpp"
 #include "window.hpp"
 #include "oglin.hpp"
-#include "light_manager.hpp"
 #include <iostream>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #define BUFFER_OFFSET(x) (GLvoid*)(x)
+
+GLboolean depthVisual = GL_FALSE;
 
 using namespace glm;
 void tsys::Init() {
@@ -16,6 +17,7 @@ void tsys::Init() {
     p.NewProgram("main", "assets/shader.vert", "assets/shader.frag");
     /* initializing camera manager */
     cam_man = new CameraMan();
+    lman = new LightMan();
     
     /* printing opengl version */
     win.printStats();
@@ -32,9 +34,8 @@ void tsys::DrawShadows() {
 
 void tsys::Loop() {
     Window& win = Window::instance("");
-    LightMan* lman = new LightMan();
 //    lman->NewPointLight(glm::vec3(-1.2, 1.9, 1.5), glm::vec3(1.0));
-    lman->NewPointShadowMap(glm::vec3(0.0, 2.0, 0.0), glm::vec3(1.0));
+    lman->NewPointShadowMap(glm::vec3(0.0, 1.0, 2.0), glm::vec3(1.0));
     
     SDL_SetRelativeMouseMode(SDL_TRUE);
     
@@ -60,8 +61,9 @@ void tsys::Loop() {
         glBindTexture(GL_TEXTURE_CUBE_MAP, cubeDepth);
         glUniform1i(p.GetActiveUniformLocation("shadowMap"), 18);
         glUniform1f(p.GetActiveUniformLocation("far_plane"), 25.f);
-        glUniform3f(p.GetActiveUniformLocation("lightpos"), 0.0, 0.4, 0.0);
+        glUniform3fv(p.GetActiveUniformLocation("lightpos"), 1, glm::value_ptr(lman->getShadowPos()));
         glUniform1d(p.GetActiveUniformLocation("gamma"), 2.2);
+        glUniform1i(p.GetActiveUniformLocation("depthVisual"), depthVisual);
         sc->Draw(GL_TRUE, glm::vec3(1.0));
         
         p.SetActive("lights");
@@ -120,6 +122,23 @@ bool tsys::input() {
     if (state[SDL_SCANCODE_LSHIFT]) {
         cam_man->MoveCamera(MOVE_UP, -movement_speed);
     }
+    if (state[SDL_SCANCODE_UP])
+        lman->MoveLight(0.1f * glm::vec3(0.0, 1.0, 0.0));
+    if (state[SDL_SCANCODE_DOWN])
+        lman->MoveLight(0.1f * glm::vec3(0.0, -1.0, 0.0));
+    if (state[SDL_SCANCODE_J])
+        lman->MoveLight(0.1f * glm::vec3(0.0, 0.0, -1.0));
+    if (state[SDL_SCANCODE_I])
+        lman->MoveLight(0.1f * glm::vec3(-1.0, 0.0, 0.0));
+    if (state[SDL_SCANCODE_L])
+        lman->MoveLight(0.1f * glm::vec3(0.0, 0.0, 1.0));
+    if (state[SDL_SCANCODE_K])
+        lman->MoveLight(0.1f * glm::vec3(1.0, 0.0, 0.0));
+    if (state[SDL_SCANCODE_R]) {
+        depthVisual = !depthVisual;
+        SDL_Delay(100);
+    }
+
     
     /* getting mouse movement */
     int dx, dy;

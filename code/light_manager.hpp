@@ -33,6 +33,11 @@ public:
     GLuint MapDirShadows(void (*drawScene)(glm::mat4), glm::mat4&);
     GLuint MapPointShadows(void (*drawScene)());
     void RenderLights();
+    
+    void MoveLight(glm::vec3 dir);
+    glm::vec3 getShadowPos() {
+        return point_shadow->position;
+    }
 private:
     std::vector<Light> point_lights;
     std::vector<Light> dir_lights;

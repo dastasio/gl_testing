@@ -85,7 +85,7 @@ void LightMan::NewPointShadowMap(glm::vec3 p, glm::vec3 c) {
     
     using glm::lookAt;
     glm::vec3 light_pos = point_shadow->position;
-    glm::mat4 proj = glm::perspective(90.f, 1.f, 1.f, 25.f);
+    glm::mat4 proj = glm::perspective(glm::radians(90.f), 1.f, 1.f, 25.f);
     lightSpaces.push_back(proj * lookAt(light_pos, light_pos + glm::vec3( 1.0, 0.0, 0.0), glm::vec3( 0.0,-1.0, 0.0)));
     lightSpaces.push_back(proj * lookAt(light_pos, light_pos + glm::vec3(-1.0, 0.0, 0.0), glm::vec3( 0.0,-1.0, 0.0)));
     lightSpaces.push_back(proj * lookAt(light_pos, light_pos + glm::vec3( 0.0, 1.0, 0.0), glm::vec3( 0.0, 0.0, 1.0)));
@@ -95,6 +95,19 @@ void LightMan::NewPointShadowMap(glm::vec3 p, glm::vec3 c) {
 }
 
 
+void LightMan::MoveLight(glm::vec3 dir) {
+    point_shadow->position += dir;
+    lightSpaces.clear();
+    using glm::lookAt;
+    glm::vec3 light_pos = point_shadow->position;
+    glm::mat4 proj = glm::perspective(glm::radians(90.f), 1.f, 1.f, 25.f);
+    lightSpaces.push_back(proj * lookAt(light_pos, light_pos + glm::vec3( 1.0, 0.0, 0.0), glm::vec3( 0.0,-1.0, 0.0)));
+    lightSpaces.push_back(proj * lookAt(light_pos, light_pos + glm::vec3(-1.0, 0.0, 0.0), glm::vec3( 0.0,-1.0, 0.0)));
+    lightSpaces.push_back(proj * lookAt(light_pos, light_pos + glm::vec3( 0.0, 1.0, 0.0), glm::vec3( 0.0, 0.0, 1.0)));
+    lightSpaces.push_back(proj * lookAt(light_pos, light_pos + glm::vec3( 0.0,-1.0, 0.0), glm::vec3( 0.0, 0.0,-1.0)));
+    lightSpaces.push_back(proj * lookAt(light_pos, light_pos + glm::vec3( 0.0, 0.0, 1.0), glm::vec3( 0.0,-1.0, 0.0)));
+    lightSpaces.push_back(proj * lookAt(light_pos, light_pos + glm::vec3( 0.0, 0.0,-1.0), glm::vec3( 0.0,-1.0, 0.0)));
+}
 GLuint LightMan::MapPointShadows(void (*drawScene)()) {
     ProgramMan &pman = ProgramMan::instance();
     
@@ -167,6 +180,16 @@ void LightMan::RenderLights() {
         glm::vec3 color = point_lights[i].c_diff;
         glm::mat4 transform = glm::mat4(1.0);
         transform = glm::translate(transform, point_lights[i].position);
+        transform = glm::scale(transform, glm::vec3(0.2));
+        
+        glUniformMatrix4fv(UniformModelMatrixLocation, 1, GL_FALSE, glm::value_ptr(transform));
+        glUniform3f(UniformColorLocation, color.r, color.g, color.b);
+        glDrawElements(GL_TRIANGLES, 144, GL_UNSIGNED_INT, 0);
+    }
+    {
+        glm::vec3 color = point_shadow->c_diff;
+        glm::mat4 transform = glm::mat4(1.0);
+        transform = glm::translate(transform, point_shadow->position);
         transform = glm::scale(transform, glm::vec3(0.2));
         
         glUniformMatrix4fv(UniformModelMatrixLocation, 1, GL_FALSE, glm::value_ptr(transform));
