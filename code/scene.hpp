@@ -12,7 +12,7 @@ public:
     void ActiveCubemap(GLint location, GLint index = 0);
 private:
     std::vector<Mesh*> meshes;
-    const char* directory;
+    std::string directory;
     GLuint vbo, ebo;
     GLuint total_num_indices;
     

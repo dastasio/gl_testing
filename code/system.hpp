@@ -8,12 +8,12 @@
 #define SHOW_WARNINGS
 
 namespace tsys {
-    ProgramMan &p = ProgramMan::instance();
-    VAOMan &vaoman = VAOMan::instance();
-    LightMan* lman;
-    Scene *sc;
-    
-    CameraMan *cam_man;
+    extern ProgramMan &p;
+	extern VAOMan &vaoman;
+    extern LightMan* lman;
+    extern Scene *sc;
+     
+    extern CameraMan *cam_man;
     
     void Init();
     void InitBuffers();

@@ -60,6 +60,12 @@ Window::Window(const char* t, int x, int y, int w, int h, int maj, int min) {
     else {
         SDL_GL_MakeCurrent(this->window, this->context);
         
+		SDL_GL_MakeCurrent(this->window, this->context);
+		if (!gladLoadGLLoader((GLADloadproc)SDL_GL_GetProcAddress)) {
+			std::cerr << "[ERROR] Could not initialize glad!" << std::endl;
+			exit(EXIT_FAILURE);
+		}
+
         glViewport(0, 0, w, h);
         this->width = w;
         this->height = h;

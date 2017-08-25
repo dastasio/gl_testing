@@ -32,7 +32,7 @@ Texture TextureMan::ReadTexture(const char *path) {
     tx.h = image->h;
     tx.pixels = (GLubyte*)image->pixels;
     tx.format = SDL_PIXELORDER(image->format->format) == SDL_ARRAYORDER_RGB ? GL_RGB : GL_RGBA;
-    SDL_FreeSurface(image);
+    //SDL_FreeSurface(image);
     return tx;
 }
 

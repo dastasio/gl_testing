@@ -20,7 +20,7 @@ Scene::Scene(const char* path) {
     }
     
     std::string dir(path);
-    this->directory = dir.substr(0, dir.find_last_of('/')).c_str();
+    this->directory = dir.substr(0, dir.find_last_of('/'));
     
     ProcessNode(scene->mRootNode, scene);
     InitBuffers();

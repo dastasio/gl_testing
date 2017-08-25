@@ -8,6 +8,13 @@
 
 GLboolean depthVisual = GL_FALSE;
 
+ProgramMan &tsys::p = ProgramMan::instance();
+VAOMan &tsys::vaoman = VAOMan::instance();
+LightMan* tsys::lman;
+Scene *tsys::sc;
+
+CameraMan *tsys::cam_man;
+
 using namespace glm;
 void tsys::Init() {
     /* creating window nad context initialization*/

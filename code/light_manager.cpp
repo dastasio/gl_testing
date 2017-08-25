@@ -155,7 +155,8 @@ GLuint LightMan::MapDirShadows(void (*drawScene)(glm::mat4), glm::mat4 &lspaceMa
 }
 
 void LightMan::CalculateLighting() {
-    glUniform3fv(UniformArrayLocation_point, point_lights.size() * 4, glm::value_ptr(point_lights[0].position));
+	if (point_lights.size() > 0)
+		glUniform3fv(UniformArrayLocation_point, point_lights.size() * 4, glm::value_ptr(point_lights[0].position));
     glUniform1i(UniformArraySizeLocation_point, this->point_lights.size());
     
     ProgramMan &pman = ProgramMan::instance();

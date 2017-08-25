@@ -2,6 +2,13 @@
 #include "shaders.hpp"
 #include <map>
 
+struct cmp_str
+{
+	bool operator()(const char* lhs, const char* rhs) const {
+		return std::strcmp(lhs, rhs) < 0;
+	}
+};
+
 class ProgramMan {
 public:
     static ProgramMan& instance() {
@@ -28,6 +35,6 @@ private:
     ProgramMan() {}
     ~ProgramMan() {}
     
-    std::map<const char*, Program*> programs;
+    std::map<const char*, Program*, cmp_str> programs;
     const char* active_name;
 };

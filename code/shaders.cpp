@@ -22,7 +22,7 @@ void Shader::ReadSource(const char *path) {
         }
         
         file.seekg(0, std::ios::end);
-        uint l = file.tellg();
+        unsigned int l = file.tellg();
         char* source = new char[l];
         
         file.seekg(0, std::ios::beg);
@@ -70,9 +70,9 @@ void Program::compile() {
         exit(EXIT_FAILURE);
     }
     
-    this->vertex.~Shader();
-    this->fragment.~Shader();
-    this->geometry.~Shader();
+    //this->vertex.~Shader();
+    //this->fragment.~Shader();
+    //this->geometry.~Shader();
 }
 
 

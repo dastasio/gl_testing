@@ -33,7 +33,7 @@ public:
     void SendEyePosition();
     
 private:
-    std::map<const char*, Camera*> cams;
+    std::map<const char*, Camera*, cmp_str> cams;
     Camera* active_cam;
     const char* active_name;
 };
