@@ -14,7 +14,7 @@ bool Window::InitSDL() {
         return false;
     }
     
-    int flags = IMG_INIT_PNG;
+    int flags = IMG_INIT_PNG | IMG_INIT_JPG;
     if (!(IMG_Init(flags)) & flags) {
         std::cerr << "[ERROR] Could not initialize SDL_image:\n" << IMG_GetError() << std::endl;
         return false;
@@ -60,7 +60,6 @@ Window::Window(const char* t, int x, int y, int w, int h, int maj, int min) {
     else {
         SDL_GL_MakeCurrent(this->window, this->context);
         
-		SDL_GL_MakeCurrent(this->window, this->context);
 		if (!gladLoadGLLoader((GLADloadproc)SDL_GL_GetProcAddress)) {
 			std::cerr << "[ERROR] Could not initialize glad!" << std::endl;
 			exit(EXIT_FAILURE);
